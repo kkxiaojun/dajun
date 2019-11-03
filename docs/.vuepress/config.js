@@ -1,4 +1,5 @@
 module.exports = {
+  base: '/dajun/',
   title: '大俊的知识库',
   description: '大俊的博客',
   head: [
