@@ -121,7 +121,7 @@ includes(),(解决es5的**indexOf**不能发现**NaN**的不足
    [...arr1,...arr2]
    ```
 
-   ![](/Users/apple/Documents/git/blog/es6/jiegou.jpg)
+   ![](/image/es6/jiegou.jpg)
 
 ### 函数的扩展
 
@@ -262,7 +262,7 @@ pro1.then((res)=>{
 console.log("因为then方法是异步的，所以不会等待，跳过直接进行这里的代码,所以这里先执行");
 ```
 
-
+![](/image/es6/promise.jpg)
 
 ### Symbol，Set，Map
 
@@ -276,9 +276,9 @@ console.log("因为then方法是异步的，所以不会等待，跳过直接进
 
 2. map.提供了“值-值”对应，更完善
 
-![](/image/es6/Map.png)
+![](/image/es6/map.jpg)
 
-![](/image/es6/Set.png)
+![](/image/es6/set.jpg)
 
 ### Class
 

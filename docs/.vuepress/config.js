@@ -1,7 +1,7 @@
 module.exports = {
   base: '/dajun/',
-  title: '大俊的知识库',
-  description: '大俊的博客',
+  title: 'KK的知识库',
+  description: 'KK的博客',
   head: [
     ['link', { rel: 'icon', href: '/image/avator.png'}]
   ],
@@ -9,15 +9,21 @@ module.exports = {
     // 导航栏配置
     nav: [
         { text: '主页', link: '/' },
-        { text: '博文', link: '/android/'
-          // items: [
-          //   { text: 'Android', link: '/android/' },
-          //   { text: 'ios', link: '/ios/' },
-          //   { text: 'Web', link: '/web/' }
-          // ]
+        { text: '前端基础',
+          items: [
+            { text: 'JavaScript', link: '/javascript/' },
+            { text: 'CSS', link: '/css/' },
+            { text: 'Webpack', link: '/webpack/' },
+            { text: '浏览器相关', link: '/broswer/'}
+          ]
         },
-        { text: '关于', link: '/about/' },
-        { text: 'Github', link: 'https://www.github.com/kkxiaojun' },
+        { text: '计算机基础',
+          items: [
+            { text: '计算机网络', link: '/internet/' },
+            { text: '算法', link: '/sort/' }
+          ]
+        },
+        { text: 'Github', link: 'https:www.github.com/kkxiaojun' },
     ],
     displayAllHeaders: true,
     sidebar: 'auto',
