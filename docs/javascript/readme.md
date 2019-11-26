@@ -342,8 +342,123 @@ const c = new foo()
 2. 对于==，只判断值是否相同。
 
 ### 闭包
+**定义和理解**
+::: tip
+函数A内部有一个函数B，函数B能访问函数A的变量，函数B就是闭包
+:::
+```javascript
+function A() {
+  let a = 10
+  function B() {
+    return a
+  }
+  let result = B()
+  console.log('result:',result)
+}
+```
 
-### `new`的过程发生了什么 
+在JS中闭包的意义就是让我们可以间接访问函数内部的变量。
+
+:::
+**经典题目**
+:::
+```javascript
+for (var i = 1; i <= 5; i++) {
+  setTimeout(function timer() {
+    console.log(i)
+  }, i * 1000)
+}
+
+```
+`setTimeout` 是个异步函数，所以会先把循环全部执行完毕，这时候 i 就是 6 了，所以会输出一堆 6。
+
+**解决方法**
+1. 采用闭包
+2. 使用`setTimeout`的第3个参数
+3. 用`let`（推荐）
+
+方法一： 使用闭包
+
+```javascript
+for (var i = 1; i <= 5; i++) {
+  (function(j){setTimeout(function timer() {
+    console.log(j)
+  }, j * 1000)})(i)
+}
+```
+
+方法二： 使用`setTimeout`的第3个参数
+```javascript
+for (var i = 1; i <= 5; i++) {
+  setTimeout(function timer(j) {
+    console.log(j)
+  }, i * 1000, i)
+}
+```
+
+方法三： `let`
+```javascript
+for (let i = 1; i <= 5; i++) {
+  setTimeout(function timer() {
+    console.log(i)
+  }, i * 1000)
+}
+```
+
+### 浅拷贝
+1. `Object.assign()`
+2. 展开运算符`...`
+
+`Object.assign()`
+```javascript
+  let a = {
+    name: 'hualala'
+  }
+  let b = Object.assign({}, a)
+  a.name = 'hualala-go'
+  console.log(b.name) // hualala
+```
+
+展开运算符`...`
+```javascript
+  let a = {
+    name: 'hualala'
+  }
+  let b = {...a}
+  a.name = 'hualala-go'
+  console.log(b.name) // hualala
+```
+
+浅拷贝的问题： 对象里边存在对象，拷贝出问题
+```javascript
+let a = {
+  age: 25,
+  jobs: {
+    first: 'huahua'
+  }
+}
+let b = { ...a }
+a.jobs.first = 'native'
+console.log(b.jobs.first) // native
+```
+
+这时需要深拷贝的配合
+### 深拷贝
+1. `JSON.parse(JSON.stringfy(obj))`
+
+但是该方法也是有局限性的：
+* 会忽略 undefined
+* 会忽略 symbol
+* 不能序列化函数
+* 不能解决循环引用的对象
+
+当然你可能想自己来实现一个深拷贝，但是其实实现一个深拷贝是很困难的，需要我们考虑好多种边界情况，
+比如原型链如何处理、DOM 如何处理等等, 推荐使用`lodash`
+
+### 原型
+
+
+### `new`的过程发生了什么
 ## ES6
 
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
