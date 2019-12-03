@@ -456,9 +456,50 @@ console.log(b.jobs.first) // native
 比如原型链如何处理、DOM 如何处理等等, 推荐使用`lodash`
 
 ### 原型
+输入
+```javascript
+let obj ={}
+```
+
+会发现每个 JS 对象都有 `__proto__` 属性，这个属性指向了原型。这个属性在现在来说已经不推荐直接去使用它了，这只是浏览器在早期为了让我们访问到内部属性 [[prototype]] 来实现的一个东西。
+
+`constructor`里边有个`prototype`属性，这个属性对应的值和先前我们在`__proto__`中的一样。
+
+结论：
+原型的`constructor`属性指向构造函数，构造函数通过`prototype`属性指回原型。
+
+图片 [https://www.processon.com/diagraming/5ac1a2c9e4b0cf24e962e62d](https://www.processon.com/diagraming/5ac1a2c9e4b0cf24e962e62d)
+
+
 
 
 ### `new`的过程发生了什么
+**描述new一个对象的例子**
+1、创建一个空对象，并且this变量引用该对象，同时继承了该函数的原型（实例对象通过__proto__属性指向原型对象；obj.__proto__ = Base.prototype;） 2、属性和方法被加入到 this 引用的对象中。
+
+```javascript
+1. 创建一个空的简单JavaScript对象（即`{}`）。
+2. 链接该对象（即设置该对象的构造函数）到另一个对象。
+3. 将步骤1新创建的对象作为this的上下文。
+4. 如果该函数没有返回对象，则返回this。
+
+function Food(){
+    this.cai = cai;
+    // return this // 默认有这一行
+}
+```
+
+详解
+```javascript
+function myNew(_constructor, arg) {
+  // 第一步 1
+  var obj = {};
+  // 第二步 2
+  obj._proto_ = _constructor.prototype;
+  //把该对象的原型指向构造函数的原型对象，就建立起原型了：obj->Animal.prototype->Object.prototype->null
+  return _constructor.call(obj, arg);
+}
+```
 ## ES6
 
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
