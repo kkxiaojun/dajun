@@ -461,6 +461,8 @@ console.log(b.jobs.first) // native
 let obj ={}
 ```
 
+<img :src="$withBase('/image/javascript/prototype1.png')" alt="foo">
+
 会发现每个 JS 对象都有 `__proto__` 属性，这个属性指向了原型。这个属性在现在来说已经不推荐直接去使用它了，这只是浏览器在早期为了让我们访问到内部属性 [[prototype]] 来实现的一个东西。
 
 `constructor`里边有个`prototype`属性，这个属性对应的值和先前我们在`__proto__`中的一样。
@@ -468,26 +470,19 @@ let obj ={}
 结论：
 原型的`constructor`属性指向构造函数，构造函数通过`prototype`属性指回原型。
 
-图片 [https://www.processon.com/diagraming/5ac1a2c9e4b0cf24e962e62d](https://www.processon.com/diagraming/5ac1a2c9e4b0cf24e962e62d)
+<img :src="$withBase('/image/javascript/prototype.png')" alt="foo">
 
 
 
 
-### `new`的过程发生了什么
+### new
 **描述new一个对象的例子**
-1、创建一个空对象，并且this变量引用该对象，同时继承了该函数的原型（实例对象通过__proto__属性指向原型对象；obj.__proto__ = Base.prototype;） 2、属性和方法被加入到 this 引用的对象中。
-
-```javascript
 1. 创建一个空的简单JavaScript对象（即`{}`）。
 2. 链接该对象（即设置该对象的构造函数）到另一个对象。
 3. 将步骤1新创建的对象作为this的上下文。
 4. 如果该函数没有返回对象，则返回this。
 
-function Food(){
-    this.cai = cai;
-    // return this // 默认有这一行
-}
-```
+
 
 详解
 ```javascript
@@ -500,6 +495,103 @@ function myNew(_constructor, arg) {
   return _constructor.call(obj, arg);
 }
 ```
+### 原型继承和 Class 继承
+
+在JS中，`class`只是语法糖并不存在类
+
+```javascript
+class Car {}
+Car instanceof Function // true
+```
+
+#### 组合继承
+
+组合继承是最常用的继承方式
+
+```javascript
+function Parent(value) {
+    this.val = value
+}
+Parent.prototype.getValue = function (){
+    console.log(console.log(this.val))
+}
+function Child(value) {
+    Parent.call(this, value)
+}
+Child.prototype = new Parent()
+child.getValue() // 1
+child instanceof Parent // true
+```
+
+以上继承的方式核心是在子类的构造函数中通过 `Parent.call(this)` 继承父类的属性，然后改变子类的原型为 `new Parent()` 来继承父类的函数。
+
+这种继承方式优点在于构造函数可以传参，不会与父类引用属性共享，可以复用父类的函数，但是也存在一个缺点就是在继承父类函数的时候调用了父类构造函数，导致子类的原型上多了不需要的父类属性，存在内存上的浪费。
+
+#### 寄生组合继承
+
+这种继承方式对组合继承进行了优化，组合继承缺点在于继承父类函数时调用了构造函数，我们只需要优化掉这点就行了。
+
+```javascript
+function Parent(value) {
+  this.val = value
+}
+Parent.prototype.getValue = function() {
+  console.log(this.val)
+}
+
+function Child(value) {
+  Parent.call(this, value)
+}
+Child.prototype = Object.create(Parent.prototype, {
+  constructor: {
+    value: Child,
+    enumerable: false,
+    writable: true,
+    configurable: true
+  }
+})
+
+const child = new Child(1)
+
+child.getValue() // 1
+child instanceof Parent // true
+
+```
+
+以上继承实现的核心就是将父类的原型赋值给了子类，并且将构造函数设置为子类，这样既解决了无用的父类属性问题，还能正确的找到子类的构造函数。
+
+#### Class继承
+
+以上两种继承方式都是通过原型去解决的，在 ES6 中，我们可以使用 `class` 去实现继承，并且实现起来很简单
+
+```javascript
+class Parent {
+  constructor(value) {
+    this.val = value
+  }
+  getValue() {
+    console.log(this.val)
+  }
+}
+class Child extends Parent {
+  constructor(value) {
+    super(value)
+    this.val = value
+  }
+}
+let child = new Child(1)
+child.getValue() // 1
+child instanceof Parent // true
+```
+
+`class` 实现继承的核心在于使用 `extends` 表明继承自哪个父类，并且在子类构造函数中必须调用 `super`，因为这段代码可以看成 `Parent.call(this, value)`。
+
+当然了，之前也说了在 JS 中并不存在类，`class` 的本质就是函数。
+
+### 模块化
+
+
+
 ## ES6
 
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
@@ -892,4 +984,78 @@ console.log(Point.distance(p1, p2));
 
 还有Proxy，Iterator，Generator等，未完，下一期
 
+## 源码实现
+### call、aplly、bind 实现
+::: tip
+call、aplly、bind 本质都是改变 this 的指向，不同点 call、aplly 是直接调用函数，bind 是返回一个新的函数。call 跟 aplly 就只有参数上不同。
+:::
 
+#### bind
+1. 箭头函数的 this 永远指向它所在的作用域
+2. 函数作为构造函数用 new 关键字调用时，不应该改变其 this 指向，因为 new绑定 的优先级高于 显示绑定 和 硬绑定
+
+```javascript
+Function.prototype.mybind = function(thisArg) {
+    if (typeof this !== 'function') {
+      throw TypeError("Bind must be called on a function");
+    }
+    // 拿到参数，为了传给调用者
+    const args = Array.prototype.slice.call(arguments, 1),
+      // 保存 this
+      self = this,
+      // 构建一个干净的函数，用于保存原函数的原型
+      nop = function() {},
+      // 绑定的函数
+      bound = function() {
+        // this instanceof nop, 判断是否使用 new 来调用 bound
+        // 如果是 new 来调用的话，this的指向就是其实例，
+        // 如果不是 new 调用的话，就改变 this 指向到指定的对象 o
+        return self.apply(
+          this instanceof nop ? this : thisArg,
+          args.concat(Array.prototype.slice.call(arguments))
+        );
+      };
+
+    // 箭头函数没有 prototype，箭头函数this永远指向它所在的作用域
+    if (this.prototype) {
+      nop.prototype = this.prototype;
+    }
+    // 修改绑定函数的原型指向
+    bound.prototype = new nop();
+
+    return bound;
+  }
+}
+```
+测试`mybind`
+```javascript
+const bar = function() {
+  console.log(this.name, arguments);
+};
+
+bar.prototype.name = 'bar';
+
+const foo = {
+  name: 'foo'
+};
+
+const bound = bar.mybind(foo, 22, 33, 44);
+new bound(); // bar, [22, 33, 44]
+bound(); // foo, [22, 33, 44]
+```
+
+#### call
+#### apply
+### new 实现
+### class 实现继承
+### async/await 实现
+### reduce 实现
+### 实现一个双向数据绑定
+### instanceof 实现
+### Array.isArray 实现
+### Object.create 的基本实现原理
+### getOwnPropertyNames 实现
+### promise 实现
+### 手写一个防抖/节流函数
+### 柯里化函数的实现
+### 手写一个深拷贝
