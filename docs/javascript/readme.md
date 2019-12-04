@@ -660,19 +660,82 @@ function createObj (o) {
 缺点：跟借用构造函数模式一样，每次创建对象都会创建一遍方法。
 
 #### 寄生组合式继承
-这种继承方式对组合继承进行了优化，组合继承缺点在于继承父类函数时调用了构造函数，我们只需要优化掉这点就行了。
+这种继承方式对组合继承进行了优化，组合继承缺点在于继承父类函数时调用两次构造函数
 
+组合继承：
 ```javascript
-function Parent(value) {
-  this.val = value
-}
-Parent.prototype.getValue = function() {
-  console.log(this.val)
+function Parent (name) {
+    this.name = name;
+    this.colors = ['red', 'blue', 'green'];
 }
 
-function Child(value) {
-  Parent.call(this, value)
+Parent.prototype.getName = function () {
+    console.log(this.name)
 }
+
+function Child (name, age) {
+    // 第二次调用构造函数
+    Parent.call(this, name);
+    this.age = age;
+}
+
+// 第一次调用构造函数
+Child.prototype = new Parent();
+
+var child1 = new Child('kevin', '18');
+
+console.log(child1)
+```
+
+我们只需要优化掉这点就行了。
+```javascript
+function Parent (name) {
+    this.name = name;
+    this.colors = ['red', 'blue', 'green'];
+}
+
+Parent.prototype.getName = function () {
+    console.log(this.name)
+}
+
+function Child (name, age) {
+    Parent.call(this, name);
+    this.age = age;
+}
+
+// 关键的三步
+var F = function () {};
+
+F.prototype = Parent.prototype;
+
+Child.prototype = new F();
+
+
+var child1 = new Child('kevin', '18');
+
+console.log(child1);
+```
+
+优化：
+```javascript
+function object(o) {
+    function F() {}
+    F.prototype = o;
+    return new F();
+}
+
+function prototype(child, parent) {
+    var prototype = object(parent.prototype);
+    prototype.constructor = child;
+    child.prototype = prototype;
+}
+
+// 当我们使用的时候：
+prototype(Child, Parent);
+```
+
+使用`Object.create()`
+```javascript
 Child.prototype = Object.create(Parent.prototype, {
   constructor: {
     value: Child,
@@ -681,19 +744,12 @@ Child.prototype = Object.create(Parent.prototype, {
     configurable: true
   }
 })
-
-const child = new Child(1)
-
-child.getValue() // 1
-child instanceof Parent // true
-
 ```
 
-以上继承实现的核心就是将父类的原型赋值给了子类，并且将构造函数设置为子类，这样既解决了无用的父类属性问题，还能正确的找到子类的构造函数。
 
 #### Class继承
 
-以上两种继承方式都是通过原型去解决的，在 ES6 中，我们可以使用 `class` 去实现继承，并且实现起来很简单
+在 ES6 中，我们可以使用 `class` 去实现继承，并且实现起来很简单
 
 ```javascript
 class Parent {
