@@ -776,8 +776,91 @@ child instanceof Parent // true
 当然了，之前也说了在 JS 中并不存在类，`class` 的本质就是函数。
 
 ### 模块化
+使用一个技术肯定是有原因的，那么使用模块化可以给我们带来以下好处
+* 解决命名冲突
+* 提供复用性
+* 提高代码可维护性
 
+**立即执行函数**
+在早期，使用立即执行函数实现模块化是常见的手段，通过函数作用域解决了命名冲突、污染全局作用域的问题
 
+**AMD 和 CMD**
+```javascript
+// AMD
+define(['./a', './b'], function(a, b) {
+  // 加载模块完毕可以使用
+  a.do()
+  b.do()
+})
+// CMD
+define(function(require, exports, module) {
+  // 加载模块
+  // 可以把 require 写在函数体的任意地方实现延迟加载
+  var a = require('./a')
+  a.doSomething()
+})
+```
+**COMMONJS**
+CommonJS 最早是 Node 在使用，目前也仍然广泛使用，比如在 Webpack 中你就能见到它，当然目前在 Node 中的模块管理已经和 CommonJS 有一些区别了。
+
+```javascript
+// a.js
+module.exports = {
+  a: 1
+}
+// or
+exports.a = 1
+
+var module = require('./a.js')
+module.a // a
+```
+
+**require**
+```javascript
+// a.js
+module.exports = {
+  a: 1
+}
+// or
+exports.a = 1
+// 这里其实是包裹了一层立即执行函数，避免污染全局作用域
+// 重要的是module,module是NODE的独有的一个变量
+
+// module的基本实现
+var module = {
+  id: '', // 唯一标识，require引入的时候需要知道的
+  exports: {} // 空对象
+}
+
+// module和module.exports用法相同的原因
+var exports = module.exports
+var load = function(load) {
+  // 需要导出的内容
+  var a = 2
+  module.exports = a
+  return module.exports
+}
+
+```
+注意：`exports` 和 `module.exports` 用法相似，但是不能对 `exports` 直接赋值。因为`exports`和`module.exports`拥有同一块内存地址，直接对`exports`赋值，将导致两者指向不同的内存地址，导致后续不同步。
+
+**ES Module**
+ES6 模块的设计思想，是尽量的静态化，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。CommonJS 和 AMD 模块，都只能在运行时确定这些东西。比如，CommonJS 模块就是对象，输入时必须查找对象属性。
+
+```javascript
+let { a, b, c } = require('./a.js')
+
+// 等同于
+let obj = require('./a.js');
+let a = obj.a, b = obj.b, c = obj.c;
+```
+
+上面代码的实质是整体加载a模块（即加载a.js的所有方法），生成一个对象（obj），然后再从这个对象上面读取3个方法。这种加载称为“运行时加载”，因为只有运行时才能得到这个对象，导致完全没办法在编译时做“静态优化”。
+
+ES6 模块不是对象，而是通过`export`命令显式指定输出的代码，再通过import命令输入。
+```javascript
+let { a, b, c } = require('./a.js')
+```
 
 ## ES6
 

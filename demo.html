@@ -61,6 +61,12 @@
       person.age = 100;
 
       console.log(person.age); 
+
+      let products = new Proxy([
+        { name: 'Firefox', type: 'browser' },
+        { name: 'SeaMonkey', type: 'browser' },
+        { name: 'Thunderbird', type: 'mailer' }
+      ])
       // 100
 
       // person.age = 'young'; 
