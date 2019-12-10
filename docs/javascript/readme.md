@@ -495,7 +495,7 @@ function myNew(_constructor, arg) {
   return _constructor.call(obj, arg);
 }
 ```
-### 原型继承和 Class 继承
+### 继承
 
 在JS中，`class`只是语法糖并不存在类
 
@@ -503,10 +503,109 @@ function myNew(_constructor, arg) {
 class Car {}
 Car instanceof Function // true
 ```
+#### 原型链
 
-#### 组合继承
+```javascript
+function Parent() {
+  this.parentName = 'kk'
+}
 
-组合继承是最常用的继承方式
+Parent.prototype.getName = function() {
+  console.log(this.parentName)
+}
+
+function Child() {
+
+}
+
+Child.prototype = new Parent()
+
+let child = new Child()
+console.log(child.getName())
+```
+**问题**
+
+引用类型的属性被所有实例共享：
+
+```javascript
+function Parent () {
+    this.names = ['kk', 'oo'];
+}
+
+function Child () {
+
+}
+
+Child.prototype = new Parent();
+
+var child1 = new Child();
+
+child1.names.push('11');
+
+console.log(child1.names); // ["kk", "oo", "11"]
+
+var child2 = new Child();
+
+console.log(child2.names); // ["kk", "oo", "11"]
+```
+
+#### 借用构造函数(经典继承)
+```javascript
+function Parent () {
+    this.names = ['kevin', 'daisy'];
+}
+
+function Child () {
+    // call 方式绑定this，由第一次绑定决定
+    Parent.call(this);
+}
+
+var child1 = new Child();
+
+child1.names.push('yayu');
+
+console.log(child1.names); // ["kevin", "daisy", "yayu"]
+
+var child2 = new Child();
+
+console.log(child2.names); // ["kevin", "daisy"]
+```
+
+优点：
+
+1.避免了引用类型的属性被所有实例共享
+
+2.可以在 Child 中向 Parent 传参
+
+例子：
+```javascript
+function Parent (name) {
+    this.name = name;
+}
+
+function Child (name) {
+    Parent.call(this, name);
+}
+
+var child1 = new Child('kevin');
+
+console.log(child1.name); // kevin
+
+var child2 = new Child('daisy');
+
+console.log(child2.name); // daisy
+```
+
+缺点：
+
+方法都在构造函数中定义，每次创建实例都会创建一遍方法。
+
+#### 组合继承（原型链和构造函数）
+
+原型链继承和经典继承双剑合璧。
+
+使用原型链实现对**原型属性和方法**的继承，而通过借用构造函数来实现对**实例属性**的继承
+
 
 ```javascript
 function Parent(value) {
@@ -523,25 +622,120 @@ child.getValue() // 1
 child instanceof Parent // true
 ```
 
-以上继承的方式核心是在子类的构造函数中通过 `Parent.call(this)` 继承父类的属性，然后改变子类的原型为 `new Parent()` 来继承父类的函数。
+组合继承的方式核心是在子类的构造函数中通过 `Parent.call(this)` 继承父类的属性，然后改变子类的原型为 `new Parent()` 来继承父类的函数。
 
-这种继承方式优点在于构造函数可以传参，不会与父类引用属性共享，可以复用父类的函数，但是也存在一个缺点就是在继承父类函数的时候调用了父类构造函数，导致子类的原型上多了不需要的父类属性，存在内存上的浪费。
+优点：
 
-#### 寄生组合继承
+这种继承方式优点在于构造函数可以传参，不会与父类引用属性共享，可以复用父类的函数
 
-这种继承方式对组合继承进行了优化，组合继承缺点在于继承父类函数时调用了构造函数，我们只需要优化掉这点就行了。
+缺点：
 
+在继承父类函数的时候调用了父类构造函数，导致子类的原型上多了不需要的父类属性，存在内存上的浪费。
+
+#### 原型式继承
 ```javascript
-function Parent(value) {
-  this.val = value
+function createObj(o) {
+    function F(){}
+    F.prototype = o;
+    return new F();
 }
-Parent.prototype.getValue = function() {
-  console.log(this.val)
+```
+ES5 Object.create 的模拟实现，将传入的对象作为创建的对象的原型。
+
+缺点：
+
+包含引用类型的属性值始终都会共享相应的值，这点跟原型链继承一样。
+
+#### 寄生式继承
+创建一个仅用于封装继承过程的函数，该函数在内部以某种形式来做**增强对象**，最后返回对象。
+```javascript
+function createObj (o) {
+    var clone = Object.create(o);
+    clone.sayName = function () {
+        console.log('hi');
+    }
+    return clone;
+}
+```
+缺点：跟借用构造函数模式一样，每次创建对象都会创建一遍方法。
+
+#### 寄生组合式继承
+这种继承方式对组合继承进行了优化，组合继承缺点在于继承父类函数时调用两次构造函数
+
+组合继承：
+```javascript
+function Parent (name) {
+    this.name = name;
+    this.colors = ['red', 'blue', 'green'];
 }
 
-function Child(value) {
-  Parent.call(this, value)
+Parent.prototype.getName = function () {
+    console.log(this.name)
 }
+
+function Child (name, age) {
+    // 第二次调用构造函数
+    Parent.call(this, name);
+    this.age = age;
+}
+
+// 第一次调用构造函数
+Child.prototype = new Parent();
+
+var child1 = new Child('kevin', '18');
+
+console.log(child1)
+```
+
+我们只需要优化掉这点就行了。
+```javascript
+function Parent (name) {
+    this.name = name;
+    this.colors = ['red', 'blue', 'green'];
+}
+
+Parent.prototype.getName = function () {
+    console.log(this.name)
+}
+
+function Child (name, age) {
+    Parent.call(this, name);
+    this.age = age;
+}
+
+// 关键的三步
+var F = function () {};
+
+F.prototype = Parent.prototype;
+
+Child.prototype = new F();
+
+
+var child1 = new Child('kevin', '18');
+
+console.log(child1);
+```
+
+优化：
+```javascript
+function object(o) {
+    function F() {}
+    F.prototype = o;
+    return new F();
+}
+
+function prototype(child, parent) {
+    var prototype = object(parent.prototype);
+    prototype.constructor = child;
+    child.prototype = prototype;
+}
+
+// 当我们使用的时候：
+prototype(Child, Parent);
+```
+
+使用`Object.create()`
+```javascript
 Child.prototype = Object.create(Parent.prototype, {
   constructor: {
     value: Child,
@@ -550,19 +744,12 @@ Child.prototype = Object.create(Parent.prototype, {
     configurable: true
   }
 })
-
-const child = new Child(1)
-
-child.getValue() // 1
-child instanceof Parent // true
-
 ```
 
-以上继承实现的核心就是将父类的原型赋值给了子类，并且将构造函数设置为子类，这样既解决了无用的父类属性问题，还能正确的找到子类的构造函数。
 
 #### Class继承
 
-以上两种继承方式都是通过原型去解决的，在 ES6 中，我们可以使用 `class` 去实现继承，并且实现起来很简单
+在 ES6 中，我们可以使用 `class` 去实现继承，并且实现起来很简单
 
 ```javascript
 class Parent {
@@ -589,11 +776,166 @@ child instanceof Parent // true
 当然了，之前也说了在 JS 中并不存在类，`class` 的本质就是函数。
 
 ### 模块化
+使用一个技术肯定是有原因的，那么使用模块化可以给我们带来以下好处
+* 解决命名冲突
+* 提供复用性
+* 提高代码可维护性
 
+**立即执行函数**
+在早期，使用立即执行函数实现模块化是常见的手段，通过函数作用域解决了命名冲突、污染全局作用域的问题
 
+**AMD 和 CMD**
+```javascript
+// AMD
+define(['./a', './b'], function(a, b) {
+  // 加载模块完毕可以使用
+  a.do()
+  b.do()
+})
+// CMD
+define(function(require, exports, module) {
+  // 加载模块
+  // 可以把 require 写在函数体的任意地方实现延迟加载
+  var a = require('./a')
+  a.doSomething()
+})
+```
+**COMMONJS**
+CommonJS 最早是 Node 在使用，目前也仍然广泛使用，比如在 Webpack 中你就能见到它，当然目前在 Node 中的模块管理已经和 CommonJS 有一些区别了。
 
+```javascript
+// a.js
+module.exports = {
+  a: 1
+}
+// or
+exports.a = 1
+
+var module = require('./a.js')
+module.a // a
+```
+
+**require**
+```javascript
+// a.js
+module.exports = {
+  a: 1
+}
+// or
+exports.a = 1
+// 这里其实是包裹了一层立即执行函数，避免污染全局作用域
+// 重要的是module,module是NODE的独有的一个变量
+
+// module的基本实现
+var module = {
+  id: '', // 唯一标识，require引入的时候需要知道的
+  exports: {} // 空对象
+}
+
+// module和module.exports用法相同的原因
+var exports = module.exports
+var load = function(load) {
+  // 需要导出的内容
+  var a = 2
+  module.exports = a
+  return module.exports
+}
+
+```
+注意：`exports` 和 `module.exports` 用法相似，但是不能对 `exports` 直接赋值。因为`exports`和`module.exports`拥有同一块内存地址，直接对`exports`赋值，将导致两者指向不同的内存地址，导致后续不同步。
+
+**ES Module**
+ES6 模块的设计思想，是尽量的静态化，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。CommonJS 和 AMD 模块，都只能在运行时确定这些东西。比如，CommonJS 模块就是对象，输入时必须查找对象属性。
+
+```javascript
+let { a, b, c } = require('./a.js')
+
+// 等同于
+let obj = require('./a.js');
+let a = obj.a, b = obj.b, c = obj.c;
+```
+
+上面代码的实质是整体加载a模块（即加载a.js的所有方法），生成一个对象（obj），然后再从这个对象上面读取3个方法。这种加载称为“运行时加载”，因为只有运行时才能得到这个对象，导致完全没办法在编译时做“静态优化”。
+
+ES6 模块不是对象，而是通过`export`命令显式指定输出的代码，再通过import命令输入。
+```javascript
+let { a, b, c } = require('./a.js')
+```
+
+## 异步编程
+主要是了解我们常用的，发送异步请求的内容
+### 并发concurrency和并行parallelism
+**并发**
+并发是宏观概念，我分别有任务 A 和任务 B，在一段时间内通过任务间的切换完成了这两个任务，这种情况就可以称之为并发。（可以不同时）
+
+**并行**
+并行是微观概念，假设 CPU 中存在两个核心，那么我就可以同时完成任务 A、B。同时完成多个任务的情况就可以称之为并行。（同时）
+
+### ajax
+**基础**
+发送异步请求
+
+**创建过程**
+1. 创建XMLHttpRequest对象,也就是创建一个异步调用对象.
+
+2. 创建一个新的HTTP请求,并指定该HTTP请求的方法、URL及验证信息（xhr.open(method, url, true/false)）.
+
+3. 设置响应HTTP请求状态变化的函数.(onreadystatechange,readyState==4,status==200)
+
+4. 发送HTTP请求.(xhr.send(method, url, true/false))
+
+5. 获取异步调用返回的数据.
+
+6. 使用JavaScript和DOM实现局部刷新.
+
+```javascript
+method
+var xhr;
+if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+  xhr=new XMLHttpRequest();
+  }
+else
+  {// code for IE6, IE5
+  xhr=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+xhr.onreadystatechange=function()
+  {
+  if (xhr.readyState==4 && xhr.status==200)
+    {
+    document.getElementById("txtHint").innerHTML=xhr.responseText;
+    }
+  }
+xhr.open("GET","gethint.asp?q="+str,true);
+if(method === 'post') {
+    xhr.send(data);
+} else {
+    xhr.send();
+}
+}
+```
+
+**AJAX的工作原理**
+
+Ajax的工作原理相当于在用户和服务器之间加了—个中间层(AJAX引擎),使用户操作与服务器响应异步化。　Ajax的原理简单来说通过XmlHttpRequest对象来向服务器发异步请求，从服务器获得数据，然后用javascript来操作DOM而更新页面。
+
+**ajax优缺点**
+
+优点：无刷新更新数据，异步与服务器通信，前后端负载均衡
+
+缺点：
+
+- ajax干掉了Back和history功能，对浏览器机制的破坏
+- 对搜索引擎支持较弱
+- 违背了URI和资源定位的初衷
+
+### callback hell 
+地狱的根本问题就是：
+* 嵌套函数存在耦合性，一旦有所改动，就会牵一发而动全身
+* 嵌套函数一多，就很难处理错误
+
+### 
 ## ES6
-
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
 
 ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有类的概念，但是目前浏览器的 JavaScript 是 ES5 版本，大多数高版本的浏览器也支持 ES6，不过只实现了 ES6 的部分特性和功能。
@@ -601,9 +943,6 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 
 
 例如箭头函数(arrow functions)和简单的字符串插值(string interpolation),大到烧脑的新概念,例如代理(proxy)和生成器(generators) 等，经常使用，才更熟悉。
-
-
-
 ### let与const和块级作用域
 
 #### es5的特点
