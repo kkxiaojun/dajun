@@ -862,8 +862,80 @@ ES6 模块不是对象，而是通过`export`命令显式指定输出的代码�
 let { a, b, c } = require('./a.js')
 ```
 
-## ES6
+## 异步编程
+主要是了解我们常用的，发送异步请求的内容
+### 并发concurrency和并行parallelism
+**并发**
+并发是宏观概念，我分别有任务 A 和任务 B，在一段时间内通过任务间的切换完成了这两个任务，这种情况就可以称之为并发。（可以不同时）
 
+**并行**
+并行是微观概念，假设 CPU 中存在两个核心，那么我就可以同时完成任务 A、B。同时完成多个任务的情况就可以称之为并行。（同时）
+
+### ajax
+**基础**
+发送异步请求
+
+**创建过程**
+1. 创建XMLHttpRequest对象,也就是创建一个异步调用对象.
+
+2. 创建一个新的HTTP请求,并指定该HTTP请求的方法、URL及验证信息（xhr.open(method, url, true/false)）.
+
+3. 设置响应HTTP请求状态变化的函数.(onreadystatechange,readyState==4,status==200)
+
+4. 发送HTTP请求.(xhr.send(method, url, true/false))
+
+5. 获取异步调用返回的数据.
+
+6. 使用JavaScript和DOM实现局部刷新.
+
+```javascript
+method
+var xhr;
+if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+  xhr=new XMLHttpRequest();
+  }
+else
+  {// code for IE6, IE5
+  xhr=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+xhr.onreadystatechange=function()
+  {
+  if (xhr.readyState==4 && xhr.status==200)
+    {
+    document.getElementById("txtHint").innerHTML=xhr.responseText;
+    }
+  }
+xhr.open("GET","gethint.asp?q="+str,true);
+if(method === 'post') {
+    xhr.send(data);
+} else {
+    xhr.send();
+}
+}
+```
+
+**AJAX的工作原理**
+
+Ajax的工作原理相当于在用户和服务器之间加了—个中间层(AJAX引擎),使用户操作与服务器响应异步化。　Ajax的原理简单来说通过XmlHttpRequest对象来向服务器发异步请求，从服务器获得数据，然后用javascript来操作DOM而更新页面。
+
+**ajax优缺点**
+
+优点：无刷新更新数据，异步与服务器通信，前后端负载均衡
+
+缺点：
+
+- ajax干掉了Back和history功能，对浏览器机制的破坏
+- 对搜索引擎支持较弱
+- 违背了URI和资源定位的初衷
+
+### callback hell 
+地狱的根本问题就是：
+* 嵌套函数存在耦合性，一旦有所改动，就会牵一发而动全身
+* 嵌套函数一多，就很难处理错误
+
+### 
+## ES6
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
 
 ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有类的概念，但是目前浏览器的 JavaScript 是 ES5 版本，大多数高版本的浏览器也支持 ES6，不过只实现了 ES6 的部分特性和功能。
@@ -871,9 +943,6 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 
 
 例如箭头函数(arrow functions)和简单的字符串插值(string interpolation),大到烧脑的新概念,例如代理(proxy)和生成器(generators) 等，经常使用，才更熟悉。
-
-
-
 ### let与const和块级作用域
 
 #### es5的特点
