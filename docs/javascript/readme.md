@@ -1054,6 +1054,48 @@ console.log('1', a) // -> '1' 1
 
 上述解释中提到了 `await` 内部实现了 `generator`，其实 `await` 就是 `generator` 加上 `Promise` 的语法糖，且内部实现了自动执行 `generator`。如果你熟悉 co 的话，其实自己就可以实现这样的语法糖。
 
+### Promise
+::: tip
+Promise 的特点是什么，分别有什么优缺点？什么是 Promise 链？Promise 构造函数执行和 then 函数执行有什么区别？ 
+:::
+
+1. Promise意为承诺，有三种状态
+  * `pending`(等待)
+  * `resolve`(完成)
+  * `reject`(拒绝)
+
+2. Promise从`pending`变成为`resolve`或者`reject`就不能更改状态了
+```javascript
+new Promise((resolve, reject) => {
+  resolve('success')
+  // 无效
+  reject('reject')
+})
+```
+
+3. Promise的构造函数是立即执行的
+```javascript
+new Promise((resolve, reject) => {
+  console.log('new Promise')
+  resolve('success')
+})
+console.log('finifsh')
+// new Promise -> finifsh
+```
+
+4. Promise 实现了链式调用，也就是说每次调用 `then` 之后返回的都是一个 Promise，并且是**一个全新的 Promise**，原因也是因为状态不可变。如果你在 then 中 使用了 return，那么 return 的值会被 Promise.resolve() 包装
+```javascript
+Promise.resolve(1)
+  .then(res => {
+    console.log(res) // => 1
+    return 2 // 包装成 Promise.resolve(2)
+  })
+  .then(res => {
+    console.log(res) // => 2
+  })
+```
+
+前面都是在讲述 Promise 的一些优点和特点，其实它也是存在一些缺点的，比如无法取消 Promise，错误需要通过回调函数捕获。
 ### 常用定时器函数
 
 异步编程当然少不了定时器了，常见的定时器函数有 `setTimeout`、`setInterval`、`requestAnimationFrame`。我们先来讲讲最常用的`setTimeout`，很多人认为 `setTimeout` 是延时多久，那就应该是多久后执行。
