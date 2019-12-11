@@ -98,6 +98,19 @@
       // one
       // two
       // three
+
+      function myNew() {
+        // 创建新对象
+        let obj = {}
+        // 获取外部传入的构造器 
+        let Constructor = Array.prototype.shift.call(arguments)
+        // 实现继承，实例可以访问构造器上的属性（形成原型链）
+        obj.__proto__ = Constructor.prototype
+        // obj的作为this的上下文
+        let objNew = Constructor.apply(obj, arguments)
+        // 如果构造器函数返回的是对象，则返回这个对象，否则返回创建的obj
+        return typeof objNew === 'obj' ? Constructor : obj
+      }
     })()
   </script>
 </body>

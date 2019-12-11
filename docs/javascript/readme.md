@@ -1629,6 +1629,38 @@ bound(); // foo, [22, 33, 44]
 #### call
 #### apply
 ### new 实现
+::: tip
+我们需要知道当 `new` 的时候做了什么事情
+:::
+
+1. 创建一个空的`JavaScript`对象obj。
+2. 链接obj（即设置对象的构造函数）到另一个对象上。
+3. 将obj作为this的上下文。
+4. 如果该函数没有返回对象，则返回创建的新对象。
+```javascript
+  function myNew() {
+    // 创建新对象
+    let obj = {}
+    
+    // 获取外部传入的构造器 
+    console.log('arguments', arguments)
+    let Constructor = Array.prototype.shift.call(arguments)
+    console.log('Constructor:', Constructor)
+
+    // 实现继承，实例可以访问构造器上的属性（形成原型链）
+    obj.__proto__ = Constructor.prototype
+    
+    // obj的作为this的上下文
+    let objNew = Constructor.apply(obj, arguments)
+
+    // 如果构造器函数返回的是对象，则返回这个对象，否则返回创建的obj
+    return typeof objNew === 'obj' ? Constructor : obj
+  }
+```
+
+```javascript
+
+```
 ### class 实现继承
 ### async/await 实现
 ### reduce 实现
