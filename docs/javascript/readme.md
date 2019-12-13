@@ -1227,8 +1227,63 @@ setInterval(timer => {
 
 ### 浏览器中的Event Loop
 
-了解执行栈之后，当我们执行JS代码时，会往执行栈中推入函数。然后，执行栈中的同步任务执行，
-同时，遇到异步任务则推入 task queue 中。当执行栈为空时，将task queue中的任务推入执行栈中，以此类推。
+了解了执行栈，当我们执行 JS 代码的时候其实就是往执行栈中推入函数，那么遇到异步代码的时候该怎么办？其实当遇到异步的代码时，会被**挂起**并在需要执行的时候加入到 Task（有多种 Task） 队列中。一旦执行栈为空，Event Loop 就会从 Task 队列中拿出需要执行的代码并放入执行栈中执行，所以本质上来说 JS 中的异步还是同步行为。
+
+
+
+不同的任务源会被分配到不同的 Task 队列中，任务源可以分为 **微任务**（microtask） 和 **宏任务**（macrotask）。在 ES6 规范中，microtask 称为 `jobs`，macrotask 称为 `task`。下面来看以下代码的执行顺序：
+
+```javascript
+console.log('script start')
+
+async function async1() {
+  await async2()
+  console.log('async1 end')
+}
+async function async2() {
+  console.log('async2 end')
+}
+async1()
+
+setTimeout(function() {
+  console.log('setTimeout')
+}, 0)
+
+new Promise(resolve => {
+  console.log('Promise')
+  resolve()
+})
+  .then(function() {
+    console.log('promise1')
+  })
+  .then(function() {
+    console.log('promise2')
+  })
+
+console.log('script end')
+// script start => async2 end => Promise => script end => promise1 => promise2 => async1 end => setTimeout
+```
+
+首先先来解释下上述代码的 `async` 和 `await` 的执行顺序。当我们调用 `async1` 函数时，会马上输出 `async2 end`，并且函数返回一个 `Promise`，接下来在遇到 `await`的时候会就让出线程开始执行 `async1` 外的代码，所以我们完全可以把 `await` 看成是**让出线程**的标志。
+
+
+
+然后当同步代码全部执行完毕以后，就会去执行所有的异步代码，那么又会回到 `await` 的位置执行返回的 `Promise` 的 `resolve` 函数，这又会把 `resolve` 丢到微任务队列中，接下来去执行 `then` 中的回调，当两个 `then` 中的回调全部执行完毕以后，又会回到 `await` 的位置处理返回值，这时候你可以看成是 `Promise.resolve(返回值).then()`，然后 `await` 后的代码全部被包裹进了 `then` 的回调中，所以 `console.log('async1 end')` 会优先执行于 `setTimeout`。
+
+```javascript
+new Promise((resolve, reject) => {
+  console.log('async2 end')
+  // Promise.resolve() 将代码插入微任务队列尾部
+  // resolve 再次插入微任务队列尾部
+  resolve(Promise.resolve())
+}).then(() => {
+  console.log('async1 end')
+})
+```
+
+
+
+如果你觉得上面这段解释还是有点绕，那么我把 `async` 的这两个函数改造成你一定能理解的代码
 
 Event Loop过程：
 
@@ -1237,6 +1292,22 @@ Event Loop过程：
 3. 执行所有微任务
 4. 当执行完所有微任务后，如有必要会渲染页面
 5. 然后开始下一轮 Event Loop，执行宏任务中的异步代码，也就是 setTimeout 中的回调函数
+
+
+
+所以以上代码虽然 `setTimeout` 写在 `Promise` 之前，但是因为 `Promise` 属于微任务而 `setTimeout` 属于宏任务，所以会有以上的打印。
+
+
+
+微任务包括 `process.nextTick` ，`promise` ，`MutationObserver`。
+
+
+
+宏任务包括 `script` ， `setTimeout` ，`setInterval` ，`setImmediate` ，`I/O` ，`UI rendering`。
+
+
+
+这里很多人会有个误区，认为微任务快于宏任务，其实是错误的。因为宏任务中包括了 `script` ，浏览器会**先执行一个宏任务**，接下来有异步代码的话才会先执行微任务。
 
 
 ### Node中的Event Loop
