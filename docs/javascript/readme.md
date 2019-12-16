@@ -1224,8 +1224,15 @@ setInterval(timer => {
 
 <img :src="$withBase('/image/javascript/stack-error-1.png')" alt="foo">
 
-
 ### 浏览器中的Event Loop
+
+<img :src="$withBase('/image/javascript/nextTick.png')" alt="foo">
+
+::: tip
+
+`Event Loop`即事件循环，是指浏览器或`Node`的一种解决`javaScript`单线程运行时不会阻塞的一种机制，也就是我们经常使用**异步**的原理。
+
+:::
 
 了解了执行栈，当我们执行 JS 代码的时候其实就是往执行栈中推入函数，那么遇到异步代码的时候该怎么办？其实当遇到异步的代码时，会被**挂起**并在需要执行的时候加入到 Task（有多种 Task） 队列中。一旦执行栈为空，Event Loop 就会从 Task 队列中拿出需要执行的代码并放入执行栈中执行，所以本质上来说 JS 中的异步还是同步行为。
 
@@ -1270,6 +1277,10 @@ console.log('script end')
 
 然后当同步代码全部执行完毕以后，就会去执行所有的异步代码，那么又会回到 `await` 的位置执行返回的 `Promise` 的 `resolve` 函数，这又会把 `resolve` 丢到微任务队列中，接下来去执行 `then` 中的回调，当两个 `then` 中的回调全部执行完毕以后，又会回到 `await` 的位置处理返回值，这时候你可以看成是 `Promise.resolve(返回值).then()`，然后 `await` 后的代码全部被包裹进了 `then` 的回调中，所以 `console.log('async1 end')` 会优先执行于 `setTimeout`。
 
+
+
+如果你觉得上面这段解释还是有点绕，那么我把 `async` 的这两个函数改造成你一定能理解的代码：
+
 ```javascript
 new Promise((resolve, reject) => {
   console.log('async2 end')
@@ -1282,8 +1293,6 @@ new Promise((resolve, reject) => {
 ```
 
 
-
-如果你觉得上面这段解释还是有点绕，那么我把 `async` 的这两个函数改造成你一定能理解的代码
 
 Event Loop过程：
 

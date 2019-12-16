@@ -17,6 +17,7 @@ module.exports = {
             { text: '浏览器相关', link: '/broswer/'}
           ]
         },
+        { text: '框架基础', link: '/frame/' },
         { text: '计算机基础',
           items: [
             { text: '计算机网络', link: '/internet/' },
