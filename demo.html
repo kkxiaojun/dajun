@@ -9,96 +9,7 @@
 <body>
   <script>
     (function() {
-      let handler = {
-        get: function(target, name) {
-          return name in target ? target[name] : 20
-        }
-      }
-
-      let child = new Proxy({}, handler)
-
-      child.a = 'aa'
-      child.b = 'bb'
-      child.c = 'cc'
-
-      let validator = {
-        set: function(obj, prop, value) {
-          if (prop === 'age') {
-            if (!Number.isInteger(value)) {
-              throw new TypeError('The age is not an integer');
-            }
-            if (value > 200) {
-              throw new RangeError('The age seems invalid');
-            }
-          }
-
-          // The default behavior to store the value
-          obj[prop] = value;
-
-          // 表示成功
-          return true;
-        },
-        get: function(obj, prop, value) {
-          if (prop === 'age') {
-            if (!Number.isInteger(value)) {
-              throw new TypeError('The age is not an integer');
-            }
-          }
-
-          // The default behavior to store the value
-          obj[prop] = value;
-
-          // 表示成功
-          return true;
-        }
-      };
-
-      let person = new Proxy({}, validator);
-
-      // person.age = 100;
-
-      // let products = new Proxy([
-      //   { name: 'Firefox', type: 'browser' },
-      //   { name: 'SeaMonkey', type: 'browser' },
-      //   { name: 'Thunderbird', type: 'mailer' }
-      // ])
-      // 100
-
-      // person.age = 'young'; 
-      // 抛出异常: Uncaught TypeError: The age is not an integer
-
-      // person.age = 300;
-      // 抛出异常: Uncaught RangeError: The age seems invalid
-
-
-      var mapObj = new Map([
-        [1, 'one'],
-        [2, 'two'],
-        [3, 'three'],
-      ]);
-      console.log('mapObj:', mapObj)
-
-      mapObj.forEach((value, key) => {
-        console.log(value, key)
-      })
-      // one 1
-      // two 2
-      // three 3
-
-      for (const i of mapObj.keys()) {
-        console.log('for of:', i)
-      }
-      // 1
-      // 2
-      // 3
-
-      for (const i of mapObj.values()) {
-        console.log('for of', i)
-      }
-      // one
-      // two
-      // three
-
+      // new的实现
       function myNew() {
         // 创建新对象
         let obj = {}
@@ -111,6 +22,9 @@
         // 如果构造器函数返回的是对象，则返回这个对象，否则返回创建的obj
         return typeof objNew === 'obj' ? Constructor : obj
       }
+
+      // call的实现
+
       console.log('script start')
 
       async function async1() {
@@ -139,6 +53,7 @@
 
       console.log('script end')
     })()
+
   </script>
 </body>
 </html>
