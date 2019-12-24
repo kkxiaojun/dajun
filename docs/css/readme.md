@@ -66,6 +66,8 @@ float仍会占据其位置，position:absolute不占用页面空间 会有重叠
 2. 否则,则由这个祖先元素的 padding box 构成。
 如果都找不到，则为 initial containing block。
 
+## CSS 选择器的权重
+
 ## 动画
 用js来实现动画，我们一般是借助setTimeout或setInterval这两个函数，以及新的requestAnimationFrame
 ```javascript
