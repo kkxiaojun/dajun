@@ -14,6 +14,7 @@ module.exports = {
             { text: 'JavaScript', link: '/javascript/' },
             { text: 'CSS', link: '/css/' },
             { text: 'Webpack', link: '/webpack/' },
+            { text: 'Gulp', link: '/gulp/' },
             { text: '浏览器相关', link: '/broswer/'}
           ]
         },
