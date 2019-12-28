@@ -33,6 +33,10 @@ Vue.prototype._init = function() {
 在这俩个钩子函数执行的时候，并没有渲染 DOM，所以我们也不能够访问 DOM，一般来说，如果组件在加载的时候需要和后端有交互，放在这俩个钩子函数执行都可以，如果是需要访问 props、data 等数据的话，就需要使用 created 钩子函数。
 
 ### `beforeMount`、`mounted`
+::: tip
+挂载是指将编译完成的HTML模板挂载到对应虚拟dom
+:::
+
 在挂载开始之前被调用：相关的 render 函数首次被调用。
 
 **该钩子在服务器端渲染期间不被调用。**
@@ -105,12 +109,6 @@ export function mountComponent (
 
 至于`updated`则表示，当这个钩子被调用时，组件 DOM 已经更新，所以你现在可以执行依赖于 DOM 的操作
 
-### `actived`、`deactivated`
-`activated` 和 `deactivated` 钩子函数是专门为 keep-alive 组件定制的钩子
-
-1. `activated`是`keep-alive` 组件激活时调用。
-2. `deactivated`是`keep-alive` 组件销毁时调用。
-
 ### `beforeDestroy`、`destroyed`
 `beforeDestroy` 和 `destroyed` 钩子函数的执行时机在组件销毁的阶段
 
@@ -159,6 +157,15 @@ export function mountComponent (
   }
 }
 ```
+`beforeDestroy` 钩子函数的执行时机是在 `$destroy` 函数执行最开始的地方，接着执行了一系列的销毁动作，包括从 `parent` 的 `$children` 中删掉自身，删除 `watcher`，当前渲染的 VNode 执行销毁钩子函数等，执行完毕后再调用 `destroy` 钩子函数。
+
+在 `$destroy` 的执行过程中，它又会执行 `vm.__patch__(vm._vnode, null)` 触发它子组件的销毁钩子函数，这样一层层的递归调用，所以 `destroy` 钩子函数执行顺序是先子后父，和 `mounted` 过程一样。
+
+### `actived`、`deactivated`
+`activated` 和 `deactivated` 钩子函数是专门为 keep-alive 组件定制的钩子
+
+1. `activated`是`keep-alive` 组件激活时调用。
+2. `deactivated`是`keep-alive` 组件销毁时调用。
 
 ### `errorCaptured`
 当捕获一个来自子孙组件的错误时被调用。此钩子会收到三个参数：错误对象、发生错误的组件实例以及一个包含错误来源信息的字符串。此钩子可以返回 false 以阻止该错误继续向上传播。
@@ -357,7 +364,51 @@ function flushCallbacks () {
 `<keep-alive>` 组件是一个抽象组件，它的实现通过自定义 `render` 函数并且利用了插槽，并且知道了 `<keep-alive>` 缓存 `vnode`，了解组件包裹的子元素——也就是插槽是如何做更新的。且在 `patch` 过程中对于已缓存的组件不会执行 mounted，所以不会有一般的组件的生命周期函数但是又提供了 `activated` 和 `deactivated`钩子函数。另外我们还知道了 `<keep-alive>` 的 `props` 除了 `include` 和 `exclude` 还有文档中没有提到的 `max`，它能控制我们缓存的个数。
 
 ## 响应式原理
-1. Vue遍历所有的data属性，并用Object.defineProperty把这些属性转化为getter（进行依赖收集）和setter（观察者，在数据变更的时候通知订阅者更新视图），Object.defineProperty 是 ES5 中一个无法 shim 的特性，这也就是为什么 Vue 不支持 IE8 以及更低版本浏览器
+### 简介
+```html
+<div id="app" @click="changeMsg">
+  {{ message }}
+</div>
+```
+
+```javascript
+var app = new Vue({
+  el: '#app',
+  data: {
+    message: 'Hello Vue!'
+  },
+  methods: {
+    changeMsg() {
+      this.message = 'Hello World!'
+    }
+  }
+})
+```
+当我们去修改 this.message 的时候，模板对应的插值也会渲染成新的数据，那么这一切是怎么做到的呢？
+
+在分析前，我们先直观的想一下，如果不用 Vue 的话，我们会通过最简单的方法实现这个需求：监听点击事件，修改数据，手动操作 DOM 重新渲染。这个过程和使用 Vue 的最大区别就是多了一步“手动操作 DOM 重新渲染”。这一步看上去并不多，但它背后又潜在的几个要处理的问题：
+
+我需要修改哪块的 DOM？
+
+我的修改效率和性能是不是最优的？
+
+我需要对数据每一次的修改都去操作 DOM 吗？
+
+待着问题，我们具体了解响应式原理
+
+### 响应式
+https://lanhuapp.com/url/UQTlw
+
+### 总结
+<img :src="$withBase('/image/vue/vue-active.png')" alt="foo">
+
+1. 在 Vue 中模板编译过程中的指令或者数据绑定都会实例化一个 Watcher 实例，实例化过程中会触发 get() 将自身指向 Dep.target;
+2. data在 Observer 时执行 getter 会触发 dep.depend() 进行依赖收集;依赖收集的结果：1、data在 Observer 时闭包的dep实例的subs添加观察它的 Watcher 实例；2. Watcher 的deps中添加观察对象 Observer 时的闭包dep；
+3. 当data中被 Observer 的某个对象值变化后，触发subs中观察它的watcher执行 update() 方法，最后实际上是调用watcher的回调函数cb，进而更新视图。
+
+
+
+1. Vue遍历所有的data属性，并用Object.defineProperty把这些属性转化为getter（进行依赖收集）和setter（观察者(派发更新)，在数据变更的时候通知订阅者更新视图），Object.defineProperty 是 ES5 中一个无法 shim 的特性，这也就是为什么 Vue 不支持 IE8 以及更低版本浏览器
 2. 每个组件实例都有相应的watcher实例对象，它会在组建渲染过程中把属性记录为依赖，之后当依赖项的setter被调用时，会通知watcher重新计算，从而使它关联的组件得以更新 
 
 **检测变化的注意事项**
@@ -392,3 +443,4 @@ new Vue({
 });
 ```
 当text3改变的时候，还是会触发setter方法，导致重新执行渲染，这是不正确的。
+

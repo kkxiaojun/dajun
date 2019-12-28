@@ -952,6 +952,82 @@ enum AllocationSpace {
 
 清除对象后会造成堆内存出现碎片的情况，当碎片超过一定限制后会启动压缩算法。在压缩过程中，将活的对象像一端移动，直到所有对象都移动完成然后清理掉不需要的内存。
 
+### 经典题目
+::: tip
+此题涉及的知识点众多，包括变量定义提升、this指针指向、运算符优先级、原型、继承、全局变量污染、对象属性及原型属性优先级等等。
+:::
+
+```javascript
+function Foo() {
+    getName = function () { alert (1); };
+    return this;
+}
+Foo.getName = function () { alert (2);};
+Foo.prototype.getName = function () { alert (3);};
+var getName = function () { alert (4);};
+function getName() { alert (5);}
+
+//请写出以下输出结果：
+Foo.getName();
+getName();
+Foo().getName();
+getName();
+new Foo.getName();
+new Foo().getName();
+new new Foo().getName();
+```
+
+**第一问**
+先看此题的上半部分做了什么，首先定义了一个叫Foo的函数，之后为Foo创建了一个叫getName的静态属性存储了一个匿名函数，之后为Foo的原型对象新创建了一个叫getName的匿名函数。之后又通过函数变量表达式创建了一个getName的函数，最后再声明一个叫getName函数。
+
+第一问的 Foo.getName 自然是访问Foo函数上存储的静态属性，自然是2，没什么可说的。
+
+**第二问**
+第二问，直接调用 getName 函数。既然是直接调用那么就是访问当前上文作用域内的叫getName的函数，所以跟1 2 3都没什么关系。此题有无数面试者回答为5。此处有两个坑，一是变量声明提升，二是函数表达式。
+
+::: tip
+变量声明提升,即所有声明变量或声明函数都会被提升到当前函数的顶部。
+:::
+
+函数声明被对象字面量覆盖
+
+最终输出4
+
+**第三问**
+简单的讲，this的指向是由所在函数的调用方式决定的。而此处的直接调用方式，this指向window对象。
+
+遂Foo函数返回的是window对象，相当于执行 window.getName() ，而window中的getName已经被修改为alert(1)，所以最终会输出1
+
+**第四问**
+直接调用getName函数，相当于 window.getName() ，因为这个变量已经被Foo函数执行时修改了，遂结果与第三问相同，为1
+
+**第五问**
+::: tip
+() > . > new
+:::
+
+此处考察的是js的运算符优先级问题
+
+```javascript
+new (Foo.getName)()
+```
+弹出2
+
+**第六问**
+::: tip
+在传统语言中，构造函数不应该有返回值，实际执行的返回值就是此构造函数的**实例化对象**。
+:::
+```javascript
+(new Foo()).getName()
+```
+
+输出3
+
+**第七问**
+最终结果为3
+
+实际上这里成员访问的优先级是最高的，因此先执行了 .getName，但是在进行左侧取值的时候， new Foo() 可以理解为两种运算：new 带参数（即 new Foo()）和函数调用（即 先 Foo() 取值之后再 new），而 new 带参数的优先级是高于函数调用的，因此先执行了 new Foo()，或得 Foo 类的实例对象，再进行了成员访问 .getName。
+
 ## 异步编程
 
 主要是了解我们常用的，发送异步请求的内容
