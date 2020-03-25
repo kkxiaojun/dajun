@@ -552,7 +552,7 @@ function Parent() {
 }
 
 Parent.prototype.getName = function() {
-  console.log(this.parentName)
+  return this.parentName
 }
 
 function Child() {
@@ -1487,6 +1487,12 @@ Event Loop过程：
 这里很多人会有个误区，认为微任务快于宏任务，其实是错误的。因为宏任务中包括了 `script` ，浏览器会**先执行一个宏任务**，接下来有异步代码的话才会先执行微任务。
 
 ### Node中的Event Loop
+
+### 内存泄漏
+1. 滥用全局变量：直接用全局变量赋值，在函数中滥用this指向全局对象
+2. 不销毁定时器和回调
+3. DOM引用不规范，很多时候, 我们对 Dom 的操作, 会把 Dom 的引用保存在一个数组或者 Map 中，往往无法对其进行内存回收，ES6中引入 WeakSet 和 WeakMap 两个新的概念, 来解决引用造成的内存回收问题. WeakSet 和 WeakMap 对于值的引用可以忽略不计, 他们对于值的引用是弱引用,内存回收机制, 不会考虑这种引用. 当其他引用被消除后, 引用就会从内存中被释放.
+4. 滥用闭包
 
 ## JS 思考题
 
