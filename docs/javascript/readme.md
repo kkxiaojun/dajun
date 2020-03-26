@@ -290,8 +290,8 @@ const c = new foo()
 
 **接下来一个个分析上面的几个场景：**
 
-1. 直接`foo`调用，函数的`this`就是`window`。
-2. 对于`obj.foo()`，只要记住谁调用了函数，谁就是`this`。所以这个场景下，函数中的`this`就是`obj`。
+1. 直接`foo`调用，函数的`this`就是`window`，（注意：`use strict`下是`undefined`）。
+2. 对于`obj.foo()`，只要记住谁调用了函数，谁就是`this`。所以这个场景下，函数中的`this`就是`obj`。(延伸：o.obj.foo(), 看foo的上下文)
 3. 对于`new`，`this`肯定是绑定在`c`上，不会变。
 4. 箭头函数。不绑定`this`。另外对箭头函数使用 `bind` 这类函数是无效的。
 
@@ -523,7 +523,28 @@ let obj ={}
 3. 将步骤1新创建的对象作为this的上下文。
 4. 如果该函数没有返回对象，则返回this。
 
+注意：
+```javascript
+function Foo(){
+    this.user = "Lucas"
+    const o = {}
+    return o
+}
+const instance = new Foo()
+console.log(instance.user)
+```
+`undefined`
+```javascript
+function Foo(){
+    this.user = "Lucas"
+    return 1
+}
+const instance = new Foo()
+console.log(instance.user)
+```
+`Lucas`
 
+> 结论：如果构造函数中显式返回一个值，且返回的是一个对象，那么 this 就指向这个返回的对象；如果返回的不是一个对象，那么 this 仍然指向实例。
 
 详解
 ```javascript
@@ -1985,8 +2006,108 @@ new bound(); // bar, [22, 33, 44]
 bound(); // foo, [22, 33, 44]
 ```
 
-#### call
-#### apply
+#### call、apply
+
+call的实现
+[参考链接https://github.com/mqyqingfeng/Blog/issues/11](https://github.com/mqyqingfeng/Blog/issues/11)
+
+实现步骤 1. 改变this指向 2. 可以传参
+
+1. 改变`this`指向问题
+可以通过`this`的调用方式改变，将函数设置为obj的属性
+```javascript
+var obj = {
+  value: 1,
+  fn: function() {
+    console.log(this.value)
+  }
+}
+obj.fn() // 1
+```
+原理：
+1. 将函数设置为对象的属性
+2. 执行函数
+3. 删除属性
+
+实现过程：
+
+第一步：改变this指向
+```javascript
+Object.prototype.call2 = function(context) {
+  console.log('arguments', arguments)
+  context.fn = this
+  context.fn()
+  delete context.fn
+}
+bar.call2(foo)
+```
+
+第二步: 可以传参数
+```javascript
+Object.prototype.call3 = function(context) {
+  console.log('arguments1', arguments)
+  let args = []
+  for (let index = 1; index < arguments.length; index++) {
+    args.push('arguments['+index+']')
+  }
+  // ES6实现  args = arguments.slice(1)   context.fn(...args)
+  console.log('args:', args.toString())
+  context.fn = this
+  eval('context.fn(' + args +')')
+  // args会自动调用toString()
+  // context.fun(argument[1], argument[2])
+  delete context.fn
+}
+// bar.call3(foo, 'name', 'age')
+```
+
+第三步：1.可以传null(指向window) 2. 函数可以有返回值
+```javascript
+Object.prototype.call4 = function(context) {
+  context = context || window
+  context.fn = this
+  var args = []
+  for (let index = 1; index < arguments.length; index++) {
+    args.push('arguments[' + index + ']')
+  }
+  var result = eval('context.fn(' + args + ')')
+  delete context.fn
+  return result
+}
+```
+
+apply实现
+```javascript
+var none = {
+  value: [1,2,3]
+}
+function aaa() {
+  console.log('args', arguments)
+  console.log('apply-value', this.value)
+}
+// apply实现
+Function.prototype.apply1= function (context, arr) {
+    var context = Object(context) || window;
+    context.fn = this;
+
+    var result;
+    if (!arr) {
+        result = context.fn();
+    }
+    else {
+        var args = [];
+        for (var i = 0, len = arr.length; i < len; i++) {
+            args.push('arr[' + i + ']');
+        }
+        result = eval('context.fn(' + args + ')')
+        // ES6实现  args = arguments[1]   context.fn(...args)
+    }
+
+    delete context.fn
+    return result;
+}
+aaa.apply1(none, ['瞎搞','瞎搞1', '瞎搞2'])
+```
 ### new 实现
 ::: tip
 我们需要知道当 `new` 的时候做了什么事情

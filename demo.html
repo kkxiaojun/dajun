@@ -23,35 +23,89 @@
         return typeof objNew === 'obj' ? Constructor : obj
       }
 
+      // var foo = {
+      //   value: 2
+      // }
+      // function bar(name) {
+      //   console.log('bar-name', name)
+      //   console.log('bar-value', this.value)
+      // }
+
+
       // call的实现
+      // 1. 改变this指向 2. 可以传参
 
-      console.log('script start')
+      // 模拟示例：1. 将函数设置为对象的属性
+      // 2. 执行函数
+      // 3. 删除属性
 
-      async function async1() {
-        await async2()
-        console.log('async1 end')
+      // 第一步：改变this指向
+      Object.prototype.call2 = function(context) {
+        console.log('arguments', arguments)
+        context.fn = this
+        context.fn()
+        delete context.fn
       }
-      async function async2() {
-        console.log('async2 end')
+      bar.call2(foo)
+
+
+      // // 第二步: 可以传参数
+      Object.prototype.call3 = function(context) {
+        console.log('arguments1', arguments)
+        let args = []
+        for (let index = 1; index < arguments.length; index++) {
+          args.push('arguments['+index+']')
+        }
+        console.log('args:', args.toString())
+        context.fn = this
+        eval('context.fn(' + args +')')
+        // args会自动调用toString()
+        // context.fun(argument[1], argument[2])
+        delete context.fn
       }
-      async1()
+      // bar.call3(foo, 'name', 'age')
+      
+      // // 第三步：1.可以传null(指向window) 2. 函数可以有返回值
+      Object.prototype.call4 = function(context) {
+        context = context || window
+        context.fn = this
+        var args = []
+        for (let index = 1; index < arguments.length; index++) {
+          args.push('arguments[' + index + ']')
+        }
+        var result = eval('context.fn(' + args + ')')
+        delete context.fn
+        return result
+      }
 
-      setTimeout(function() {
-        console.log('setTimeout')
-      }, 0)
+      var none = {
+        value: [1,2,3]
+      }
+      function aaa() {
+        console.log('args', arguments)
+        console.log('apply-value', this.value)
+      }
+      // apply实现
+      Function.prototype.apply1= function (context, arr) {
+          var context = Object(context) || window;
+          context.fn = this;
 
-      new Promise(resolve => {
-        console.log('Promise')
-        resolve()
-      })
-        .then(function() {
-          console.log('promise1')
-        })
-        .then(function() {
-          console.log('promise2')
-        })
+          var result;
+          if (!arr) {
+              result = context.fn();
+          }
+          else {
+              var args = [];
+              for (var i = 0, len = arr.length; i < len; i++) {
+                  args.push('arr[' + i + ']');
+              }
+              result = eval('context.fn(' + args + ')')
+          }
 
-      console.log('script end')
+          delete context.fn
+          return result;
+      }
+      aaa.apply1(none, ['瞎搞','瞎搞1', '瞎搞2'])
     })()
 
   </script>
