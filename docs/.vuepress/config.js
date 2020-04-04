@@ -6,18 +6,12 @@ module.exports = {
     ['link', { rel: 'icon', href: '/image/avator.png'}]
   ],
   themeConfig: {
+    logo: '/image/avator.png',
     // 导航栏配置
     nav: [
         { text: '主页', link: '/' },
-        { text: '前端基础',
-          items: [
-            { text: 'JavaScript', link: '/javascript/' },
-            { text: 'CSS', link: '/css/' },
-            { text: 'Webpack', link: '/webpack/' },
-            { text: 'Gulp', link: '/gulp/' },
-            { text: '浏览器相关', link: '/broswer/'}
-          ]
-        },
+        { text: 'JavaScript基础', link: '/javascript/' },
+        { text: '浏览器相关', link: '/broswer/' },
         { text: '框架基础', 
           items: [
             { text: 'Vue', link: '/Vue/'},
@@ -33,7 +27,33 @@ module.exports = {
         { text: 'Github', link: 'https:www.github.com/kkxiaojun' },
     ],
     displayAllHeaders: true,
-    sidebar: 'auto',
+    sidebar: {
+      '/javascript/': [
+        {
+          title: 'JavaScript基础',
+          sidebarDepth: 3,
+          children: [
+            'base',
+            'es6',
+            'async',
+            'sourcecode',
+          ]
+        }
+      ],
+      '/broswer/': [
+        {
+          title: '浏览器工作原理',
+          sidebarDepth: 3,
+          children: [
+            'event',
+            'cors',
+            'cache',
+            'xss',
+            'render'
+          ]
+        }
+      ]
+    },
     lastUpdated: 'Last Updated', 
   }
 }

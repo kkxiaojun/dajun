@@ -5,109 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>proxy</title>
+  <style>
+    body {
+      margin: 0;
+    }
+    .home {
+      padding: 50px;
+      background-color: beige;
+    }
+    .test {
+      background-color: chartreuse;
+    }
+    .title {
+      color: crimson;
+    }
+  </style>
 </head>
 <body>
+  <div class="home">
+    <div class="test">我要测试getBoundingClientRect
+      <span class="title">我是child</span>
+    </div>
+  </div>
   <script>
-    (function() {
-      // new的实现
-      function myNew() {
-        // 创建新对象
-        let obj = {}
-        // 获取外部传入的构造器 
-        let Constructor = Array.prototype.shift.call(arguments)
-        // 实现继承，实例可以访问构造器上的属性（形成原型链）
-        obj.__proto__ = Constructor.prototype
-        // obj的作为this的上下文
-        let objNew = Constructor.apply(obj, arguments)
-        // 如果构造器函数返回的是对象，则返回这个对象，否则返回创建的obj
-        return typeof objNew === 'obj' ? Constructor : obj
+    const arr1 = [1, 2, 3, 4]
+    const reducer = (a, b) => {
+      return a + b
+    }
+    const result = arr1.reduce(reducer)
+    const names = ['hope', 'kk', 'hope', 'kk', 'jj']
+    const countMap = {}
+    names.forEach(item => {
+      if (countMap[item]) {
+        countMap[item] += 1
+      } else {
+        countMap[item] = 1
       }
-
-      // var foo = {
-      //   value: 2
-      // }
-      // function bar(name) {
-      //   console.log('bar-name', name)
-      //   console.log('bar-value', this.value)
-      // }
-
-
-      // call的实现
-      // 1. 改变this指向 2. 可以传参
-
-      // 模拟示例：1. 将函数设置为对象的属性
-      // 2. 执行函数
-      // 3. 删除属性
-
-      // 第一步：改变this指向
-      Object.prototype.call2 = function(context) {
-        console.log('arguments', arguments)
-        context.fn = this
-        context.fn()
-        delete context.fn
-      }
-      bar.call2(foo)
-
-
-      // // 第二步: 可以传参数
-      Object.prototype.call3 = function(context) {
-        console.log('arguments1', arguments)
-        let args = []
-        for (let index = 1; index < arguments.length; index++) {
-          args.push('arguments['+index+']')
-        }
-        console.log('args:', args.toString())
-        context.fn = this
-        eval('context.fn(' + args +')')
-        // args会自动调用toString()
-        // context.fun(argument[1], argument[2])
-        delete context.fn
-      }
-      // bar.call3(foo, 'name', 'age')
-      
-      // // 第三步：1.可以传null(指向window) 2. 函数可以有返回值
-      Object.prototype.call4 = function(context) {
-        context = context || window
-        context.fn = this
-        var args = []
-        for (let index = 1; index < arguments.length; index++) {
-          args.push('arguments[' + index + ']')
-        }
-        var result = eval('context.fn(' + args + ')')
-        delete context.fn
-        return result
-      }
-
-      var none = {
-        value: [1,2,3]
-      }
-      function aaa() {
-        console.log('args', arguments)
-        console.log('apply-value', this.value)
-      }
-      // apply实现
-      Function.prototype.apply1= function (context, arr) {
-          var context = Object(context) || window;
-          context.fn = this;
-
-          var result;
-          if (!arr) {
-              result = context.fn();
-          }
-          else {
-              var args = [];
-              for (var i = 0, len = arr.length; i < len; i++) {
-                  args.push('arr[' + i + ']');
-              }
-              result = eval('context.fn(' + args + ')')
-          }
-
-          delete context.fn
-          return result;
-      }
-      aaa.apply1(none, ['瞎搞','瞎搞1', '瞎搞2'])
-    })()
-
+    })
+    console.log('countMap:', countMap)
   </script>
 </body>
 </html>
