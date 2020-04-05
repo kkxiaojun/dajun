@@ -920,6 +920,11 @@ ES6 模块不是对象，而是通过`export`命令显式指定输出的代码�
 ```javascript
 let { a, b, c } = require('./a.js')
 ```
+### Common.js 和 es6 module 区别
+commonJs 是被加载的时候运行，esModule 是编译的时候运行
+commonJs 输出的是值的浅拷贝，esModule 输出值的引用
+webpack 中的 webpack_require 对他们处理方式不同
+webpack 的按需加载实现
 
 ### 垃圾回收
 

@@ -70,3 +70,8 @@ mc.addEventListener('message', (event) => {
     }
 });
 ```
+
+### nginx
+扯了一下跨域如何配置/转发
+缓存策略配置
+地址重定向配置

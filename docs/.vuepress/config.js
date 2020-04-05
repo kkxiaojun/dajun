@@ -45,11 +45,11 @@ module.exports = {
           title: '浏览器工作原理',
           sidebarDepth: 3,
           children: [
+            'render',
             'event',
             'cors',
             'cache',
             'xss',
-            'render'
           ]
         }
       ]
