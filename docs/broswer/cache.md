@@ -37,6 +37,8 @@ cache-control: max-age=31536000
 * `Cache-Control: no-store`才是真正的不缓存数据到本地。
 * `Cache-Control: public`可以被所有用户缓存（多用户共享），包括终端和CDN等中间代理服务器。
 * `Cache-Control: private`只能被终端浏览器缓存（而且是私有缓存），不允许中间代理服务器进行缓存。
+* `·s-max-age`覆盖max-age或者Expires头，<font color=red>但是仅适用于共享缓存(比如各个代理)，私有缓存会忽略它。</font>
+* <font color=red>指定 no-cache 或 max-age=0 表示客户端可以缓存资源，每次使用缓存资源前都必须重新验证其有效性。这意味着每次都会发起 HTTP 请求</font>
 
 #### 协商缓存
 浏览器对资源的请求没有命中强缓存，就会发一个http请求到服务器，验证协商缓存是否命中，如果协商缓存命中，则http状态码为304
