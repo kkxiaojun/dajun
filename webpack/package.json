@@ -1,0 +1,19 @@
+{
+  "name": "webpack-common",
+  "version": "1.0.0",
+  "description": "webpack-common-es6",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --colors",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "webpack"
+  ],
+  "author": "hope",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}
