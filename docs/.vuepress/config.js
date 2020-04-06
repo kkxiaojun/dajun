@@ -12,6 +12,7 @@ module.exports = {
         { text: '主页', link: '/' },
         { text: 'JavaScript基础', link: '/javascript/' },
         { text: '浏览器相关', link: '/broswer/' },
+        { text: '网络', link: '/internet/' },
         { text: '框架基础', 
           items: [
             { text: 'Vue', link: '/Vue/'},
@@ -50,6 +51,17 @@ module.exports = {
             'cors',
             'cache',
             'xss',
+          ]
+        }
+      ],
+      '/internet/': [
+        {
+          title: '网络相关',
+          sidebarDepth: 3,
+          children: [
+            'base',
+            'http',
+            'net',
           ]
         }
       ]

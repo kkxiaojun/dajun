@@ -279,6 +279,17 @@ console.log("因为then方法是异步的，所以不会等待，跳过直接进
 <img :src="$withBase('/image/es6/set.jpg')" alt="foo">
 <img :src="$withBase('/image/es6/map.jpg')" alt="foo">
 
+### WeakSet WeakMap
+`WeakSet`
+1. key必须是对象类型
+2. 不可枚举
+3. 若引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）
+
+`WeakMap`
+1. key必须是对象类型
+2. 不可枚举
+3. 若引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）
+
 ### Class
 
 #### 定义类

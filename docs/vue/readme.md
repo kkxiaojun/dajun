@@ -1338,6 +1338,8 @@ Dep 可以理解成是对 `Watcher` 的一种管理，Dep 和 `Watcher` 是紧�
 
 Vue 的响应式过程大概就是这样了。感兴趣的可以看看源码。
 
+### 批量更新与nextTick
+
 ### 总结
 <img :src="$withBase('/image/vue/vue-active.png')" alt="foo">
 

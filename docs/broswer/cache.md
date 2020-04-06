@@ -71,10 +71,11 @@ If-None-Match的header会将上次返回的Etag发送给服务器，询问该资
 
 |   属性    |                             作用                             |
 | :-------: | :----------------------------------------------------------: |
+| path | cookie的页面路径 |
 |   value   | 如果用于保存用户登录态，应该将该值加密，不能使用明文的用户标识 |
-| http-only |            不能通过 JS 访问 Cookie，减少 XSS 攻击            |
-|  secure   |               只能在协议为 HTTPS 的请求中携带                |
-| same-site |    规定浏览器不能在跨域请求中携带 Cookie，减少 CSRF 攻击     |
+| HttpOnly |   <font color=red>避免跨域脚本 (XSS) 攻击</font>。 JavaScript的 Document.cookie API无法访问带有 HttpOnly 标记的Cookie |
+|  secure   |  标记为 Secure 的Cookie只应通过被<font color=red>HTTPS</font>协议加密过的请求发送给服务端                |
+| SameSite |  SameSite Cookie允许服务器要求某个cookie在跨站请求时不会被发送，从而可以<font color=red>阻止跨站请求伪造攻击（CSRF）</font>。|
 
 ### Service Worker
 

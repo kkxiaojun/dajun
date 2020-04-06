@@ -72,6 +72,19 @@ mc.addEventListener('message', (event) => {
 ```
 
 ### nginx
+webpack-dev-server 的 HMR 实现原理
+
+webpack-dev-server 原理和如何处理跨域
+
+nginx 转发
+
+CROS 中的简单请求和非简单请求
+
+非简单请求下发起的 options
+
 扯了一下跨域如何配置/转发
+
 缓存策略配置
+
 地址重定向配置
+https://juejin.im/post/5e85ec79e51d4547153d0738

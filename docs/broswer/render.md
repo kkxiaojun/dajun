@@ -48,6 +48,12 @@ Chrome 的 UI 界面都选择采用 GPU 来绘制，这使得 GPU 成为浏览�
 IPC（Inter-Process Communication）：进程间通信
 SOA（Services Oriented Architecture）:面向服务的架构
 
+解析一下：进程和线程的区别？
+进程和线程的区别(顺便把Chrome为什么从单进程转成多进程架构说了一下)
+
+知道哪些进程间通信(IPC)的方式？ (主从式、会话式、消息-邮箱机制、管道、共享内存、Unix  Domain Socket，然后跟他讲我看过 Chromium IPC 的源码，内核里面把以前的 ChannelPosix 换成了 ChannelMojo，从而达到线程安全的目的，顺便解释了下线程安全)
+
+
 ## 如何保证页面文件被完整送达浏览器
 在网络中，一个文件通常会被拆分为很多**数据包**来进行传输，而数据包在传输过程中又有很大概率丢失或者出错。**那么如何保证页面文件能被完整地送达浏览器呢？**
 
@@ -61,9 +67,13 @@ SOA（Services Oriented Architecture）:面向服务的架构
 <img :src="$withBase('/image/browser/TCP.png')" alt="foo">
 
 ## requestAnimationFrame
+分离图层做动画有什么好处
+
 css3  GPU加速
+will-change
 
 ## 渲染机制
+<font color=red>从输入 URL 到页面渲染经历了什么？(DNS 解析过程（用了什么算法），HTML词法分析和语法分析，CSS解析， 合成图层、合成线程调用光栅化线程池，生成位图后浏览器进程间通信过程，显卡缓存与显示器的关系)</font>
 
 浏览器的渲染机制一般分为以下几个步骤
 

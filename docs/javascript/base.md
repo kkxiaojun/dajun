@@ -834,6 +834,7 @@ child instanceof Parent // true
 
 当然了，之前也说了在 JS 中并不存在类，`class` 的本质就是函数。
 
+## 进阶模块
 ### 模块化
 使用一个技术肯定是有原因的，那么使用模块化可以给我们带来以下好处
 * 解决命名冲突
@@ -844,6 +845,8 @@ child instanceof Parent // true
 在早期，使用立即执行函数实现模块化是常见的手段，通过函数作用域解决了命名冲突、污染全局作用域的问题
 
 **AMD 和 CMD**
+1. 对于依赖的模块，AMD 是提前执行，CMD 是延迟执行.不过 RequireJS 从 2.0 开始，也改成可以延迟执行（根据写法不同，处理方式不同）。
+2. CMD 推崇依赖就近，AMD 推崇依赖前置
 ```javascript
 // AMD
 define(['./a', './b'], function(a, b) {
@@ -904,7 +907,7 @@ var load = function(load) {
 注意：`exports` 和 `module.exports` 用法相似，但是不能对 `exports` 直接赋值。因为`exports`和`module.exports`拥有同一块内存地址，直接对`exports`赋值，将导致两者指向不同的内存地址，导致后续不同步。
 
 **ES Module**
-ES6 模块的设计思想，是尽量的静态化，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。CommonJS 和 AMD 模块，都只能在运行时确定这些东西。比如，CommonJS 模块就是对象，输入时必须查找对象属性。
+ES6 模块的设计思想，是尽量的**静态化**，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。CommonJS 和 AMD 模块，都只能在运行时确定这些东西。比如，CommonJS 模块就是对象，输入时必须查找对象属性。
 
 ```javascript
 let { a, b, c } = require('./a.js')
@@ -920,11 +923,28 @@ ES6 模块不是对象，而是通过`export`命令显式指定输出的代码�
 ```javascript
 let { a, b, c } = require('./a.js')
 ```
-### Common.js 和 es6 module 区别
-commonJs 是被加载的时候运行，esModule 是编译的时候运行
-commonJs 输出的是值的浅拷贝，esModule 输出值的引用
-webpack 中的 webpack_require 对他们处理方式不同
-webpack 的按需加载实现
+### Common.js 和 ES6 module 区别
+1. commonJs 是被加载的时候运行(运行时加载)，ES6 Module 是编译的时候运行（编译时加载（好处：可做Tree-shaking优化））
+2. commonJs 输出的是**值的浅拷贝**，**ES6 Module 输出值的引用**
+3. webpack 中的 `__webpack_require__` 对他们处理方式不同(common.js：实现exports和require，es6 module：通过实现自己的`__webpack_require`和`__webpack_exports__`装换成类似common.js的形式, 混用时，用`__webpack_require__n`)
+4. webpack 的按需加载实现（Webpack支持定义分割点`Code Splitting`, 通过require.ensure进行按需加载）
+
+### tree shaking
+::: tip
+移除 JavaScript 上下文中的未引用代码
+:::
+
+1. 虽然`production`模式下默认开启，但是由于经过 babel 编译全部模块被封装成 IIFE(立即执行函数)
+2. IIFE 存在副作用（主要是babel的锅）可能无法被 tree-shaking
+3. 需要设置`package.json` 的 `sideEffects`
+
+### rollup与webpack
+rollup
+1. 它支持**导出ES模块的包**。
+2. 它支持**程序流分析**，能更加正确的判断项目本身的代码是否有副作用。
+
+webpack
+1. 适合应用程序
 
 ### 垃圾回收
 
