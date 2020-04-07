@@ -4,60 +4,6 @@
 call、aplly、bind 本质都是改变 this 的指向，不同点 call、aplly 是直接调用函数，bind 是返回一个新的函数。call 跟 aplly 就只有参数上不同。
 :::
 
-#### bind
-1. 箭头函数的 this 永远指向它所在的作用域
-2. 函数作为构造函数用 new 关键字调用时，不应该改变其 this 指向，因为 new绑定 的优先级高于 显示绑定 和 硬绑定
-
-```javascript
-Function.prototype.mybind = function(thisArg) {
-    if (typeof this !== 'function') {
-      throw TypeError("Bind must be called on a function");
-    }
-    // 拿到参数，为了传给调用者
-    const args = Array.prototype.slice.call(arguments, 1),
-      // 保存 this
-      self = this,
-      // 构建一个干净的函数，用于保存原函数的原型
-      nop = function() {},
-      // 绑定的函数
-      bound = function() {
-        // this instanceof nop, 判断是否使用 new 来调用 bound
-        // 如果是 new 来调用的话，this的指向就是其实例，
-        // 如果不是 new 调用的话，就改变 this 指向到指定的对象 o
-        return self.apply(
-          this instanceof nop ? this : thisArg,
-          args.concat(Array.prototype.slice.call(arguments))
-        );
-      };
-
-    // 箭头函数没有 prototype，箭头函数this永远指向它所在的作用域
-    if (this.prototype) {
-      nop.prototype = this.prototype;
-    }
-    // 修改绑定函数的原型指向
-    bound.prototype = new nop();
-
-    return bound;
-  }
-}
-```
-测试`mybind`
-```javascript
-const bar = function() {
-  console.log(this.name, arguments);
-};
-
-bar.prototype.name = 'bar';
-
-const foo = {
-  name: 'foo'
-};
-
-const bound = bar.mybind(foo, 22, 33, 44);
-new bound(); // bar, [22, 33, 44]
-bound(); // foo, [22, 33, 44]
-```
-
 #### call、apply
 
 call的实现
@@ -160,6 +106,103 @@ Function.prototype.apply1= function (context, arr) {
 }
 aaa.apply1(none, ['瞎搞','瞎搞1', '瞎搞2'])
 ```
+
+#### bind
+::: tip
+bind() 方法会创建一个新函数。当这个新函数被调用时，bind() 的第一个参数将作为它运行时的 this，之后的一序列参数将会在传递的实参前传入作为它的参数。(来自于 MDN )
+:::
+
+1. 返回一个新函数
+2. 可以传入参数
+
+```javascript
+Function.prototype.mybind = function(context) {
+  var self = this
+  // 获取参数
+  var args = Array.prototype.slice.call(arguments, 1)
+  return function() {
+    // bind返回函数的传参
+    var innerArgs = Array.prototype.slice.call(arguments)
+    return self.apply(context, args.concat(innerArgs))
+  }
+}
+```
+::: tip
+一个绑定函数也能使用new操作符创建对象：这种行为就像把原函数当成构造器。提供的 this 值被忽略，同时调用时的参数被提供给模拟函数。
+::: 
+
+```javascript
+Function.prototype.mybind = function(context) {
+  // 非函数
+  if (typeof this !== "function") {
+    throw new Error("Function.prototype.bind - what is trying to be bound is not callable");
+  }
+  var self = this;
+  // 获取参数
+  var args = Array.prototype.slice.call(arguments, 1);
+  // 参考new的实现原理，新建一个函数，避免影响其它new的对象
+  var fnop = function() {};
+  var fBound = function() {
+    // bind返回函数的传参
+    var innerArgs = Array.prototype.slice.call(arguments);
+    return self.apply(this instanceof fnop ? this : context, args.concat(innerArgs));
+  }
+  fnop.prototype = this.prototype;
+  fBound.prototype = new fnop();
+  return fBound;
+}
+```
+
+```javascript
+Function.prototype.mybind = function(thisArg) {
+    if (typeof this !== 'function') {
+      throw TypeError("Bind must be called on a function");
+    }
+    // 拿到参数，为了传给调用者
+    const args = Array.prototype.slice.call(arguments, 1),
+      // 保存 this
+      self = this,
+      // 构建一个干净的函数，用于保存原函数的原型
+      nop = function() {},
+      // 绑定的函数
+      bound = function() {
+        // this instanceof nop, 判断是否使用 new 来调用 bound
+        // 如果是 new 来调用的话，this的指向就是其实例，
+        // 如果不是 new 调用的话，就改变 this 指向到指定的对象 o
+        return self.apply(
+          this instanceof nop ? this : thisArg,
+          args.concat(Array.prototype.slice.call(arguments))
+        );
+      };
+
+    // 箭头函数没有 prototype，箭头函数this永远指向它所在的作用域
+    if (this.prototype) {
+      nop.prototype = this.prototype;
+    }
+    // 修改绑定函数的原型指向
+    bound.prototype = new nop();
+
+    return bound;
+  }
+}
+```
+测试`mybind`
+```javascript
+const bar = function() {
+  console.log(this.name, arguments);
+};
+
+bar.prototype.name = 'bar';
+
+const foo = {
+  name: 'foo'
+};
+
+const bound = bar.mybind(foo, 22, 33, 44);
+new bound(); // bar, [22, 33, 44]
+bound(); // foo, [22, 33, 44]
+```
+
 ### new 实现
 ::: tip
 我们需要知道当 `new` 的时候做了什么事情

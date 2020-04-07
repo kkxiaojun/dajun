@@ -28,21 +28,19 @@
     </div>
   </div>
   <script>
-    const arr1 = [1, 2, 3, 4]
-    const reducer = (a, b) => {
-      return a + b
-    }
-    const result = arr1.reduce(reducer)
-    const names = ['hope', 'kk', 'hope', 'kk', 'jj']
-    const countMap = {}
-    names.forEach(item => {
-      if (countMap[item]) {
-        countMap[item] += 1
-      } else {
-        countMap[item] = 1
+    Function.prototype.mybind = function(context) {
+      var self = this
+      var args = Array.prototype.slice.call(arguments, 1)
+      return function() {
+        // bind返回函数的传参
+        var innerArgs = Array.prototype.slice.call(arguments)
+        return self.apply(context, args.concat(innerArgs))
       }
-    })
-    console.log('countMap:', countMap)
+    }
+    function callMe(name, age, hope) {
+      console.log(Array.prototype.slice.call(arguments, 1))
+    }
+    callMe('1', '2', '3')
   </script>
 </body>
 </html>
