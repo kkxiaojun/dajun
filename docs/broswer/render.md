@@ -66,6 +66,32 @@ SOA（Services Oriented Architecture）:面向服务的架构
 **示例3: TCP：把数据包送达目的主机**
 <img :src="$withBase('/image/browser/TCP.png')" alt="foo">
 
+## 从输入URL到页面渲染经历了什么
+
+### DNS 解析过程（用了什么算法）
+
+### HTML词法分析和语法分析
+浏览器不能直接理解 HTML 数据，所以第一步需要将其转换为浏览器能够理解的 DOM 树结构；
+
+### CSS解析
+1. 和 HTML 文件一样，浏览器也是无法直接理解这些纯文本的 CSS 样式，所以当渲染引擎接收到 CSS 文本时，会执行一个转换操作，
+将 CSS 文本转换为浏览器可以理解的结构——styleSheets。 (浏览器输入`document.styleSheets`可查看)
+
+2. 根据 CSS 样式表styleSheets，对其进行属性值的标准化操作。（如：2rem转化为30px）
+
+3. 再根据CSS 的`继承规则`和`层叠规则`来计算出 DOM 树所有节点的样式
+
+4. 布局阶段：最后计算 DOM 元素的**几何坐标位置**，并将这些信息保存在布局树中。
+
+### 分层、合成图层、合成线程调用光栅化线程池
+1. 渲染引擎还需要为特定的节点生成专用的图层，给页面分了很多图层
+2. 拥有层叠上下文属性[更多内容](https://developer.mozilla.org/zh-CN/docs/Web/Guide/CSS/Understanding_z_index/The_stacking_context)的元素会被提升为单独的一层
+3. 
+
+### 生成位图后浏览器进程间通信过程
+
+### 显卡缓存与显示器的关系
+
 ## requestAnimationFrame
 分离图层做动画有什么好处
 
