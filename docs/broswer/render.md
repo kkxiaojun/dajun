@@ -67,6 +67,7 @@ SOA（Services Oriented Architecture）:面向服务的架构
 <img :src="$withBase('/image/browser/TCP.png')" alt="foo">
 
 ## 从输入URL到页面渲染经历了什么
+<img :src="$withBase('/image/javascript/jincheng.png')" alt="foo">
 
 ### DNS 解析过程（用了什么算法）
 
@@ -77,6 +78,7 @@ SOA（Services Oriented Architecture）:面向服务的架构
 1. 和 HTML 文件一样，浏览器也是无法直接理解这些纯文本的 CSS 样式，所以当渲染引擎接收到 CSS 文本时，会执行一个转换操作，
 将 CSS 文本转换为浏览器可以理解的结构——styleSheets。 (浏览器输入`document.styleSheets`可查看)
 
+
 2. 根据 CSS 样式表styleSheets，对其进行属性值的标准化操作。（如：2rem转化为30px）
 
 3. 再根据CSS 的`继承规则`和`层叠规则`来计算出 DOM 树所有节点的样式
@@ -86,56 +88,23 @@ SOA（Services Oriented Architecture）:面向服务的架构
 ### 分层、合成图层、合成线程调用光栅化线程池
 1. 渲染引擎还需要为特定的节点生成专用的图层，给页面分了很多图层
 2. 拥有层叠上下文属性[更多内容](https://developer.mozilla.org/zh-CN/docs/Web/Guide/CSS/Understanding_z_index/The_stacking_context)的元素会被提升为单独的一层
-3. 
+3. 图层绘制（涉及的合成线程会生成位图，位图的栅格化涉及GPU加速）
+4. **<font color=red>合成线程将图层分成图块，并在光栅化线程池中将图块转换成位图</font>**
 
 ### 生成位图后浏览器进程间通信过程
+合成线程发送**绘制图块命令**DrawQuad给**浏览器进程**
 
 ### 显卡缓存与显示器的关系
+浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上
 
-## requestAnimationFrame
-分离图层做动画有什么好处
-
-css3  GPU加速
-will-change
-
-## 渲染机制
-<font color=red>从输入 URL 到页面渲染经历了什么？(DNS 解析过程（用了什么算法），HTML词法分析和语法分析，CSS解析， 合成图层、合成线程调用光栅化线程池，生成位图后浏览器进程间通信过程，显卡缓存与显示器的关系)</font>
-
-浏览器的渲染机制一般分为以下几个步骤
-
-1. 处理 HTML 并构建 DOM 树。
-2. 处理 CSS 构建 CSSOM 树。
-3. 将 DOM 与 CSSOM 合并成一个渲染树。
-4. 根据渲染树来布局，计算每个节点的位置。
-5. 调用 GPU 绘制，合成图层，显示在屏幕上。
-
-![](https://yck-1254263422.cos.ap-shanghai.myqcloud.com/blog/2019-06-01-042733.png)
-
-在构建 CSSOM 树时，会阻塞渲染，直至 CSSOM 树构建完成。并且构建 CSSOM 树是一个十分消耗性能的过程，所以应该尽量保证层级扁平，减少过度层叠，越是具体的 CSS 选择器，执行速度越慢。
-
-当 HTML 解析到 script 标签时，会暂停构建 DOM，完成后才会从暂停的地方重新开始。也就是说，如果你想首屏渲染的越快，就越不应该在首屏就加载 JS 文件。并且 CSS 也会影响 JS 的执行，只有当解析完样式表才会执行 JS，所以也可以认为这种情况下，CSS 也会暂停构建 DOM。
-
-![](https://yck-1254263422.cos.ap-shanghai.myqcloud.com/blog/2019-06-01-042734.png)
-
-![](https://yck-1254263422.cos.ap-shanghai.myqcloud.com/blog/2019-06-01-042735.png)
-
-### Load 和 DOMContentLoaded 区别
-
-Load 事件触发代表页面中的 DOM，CSS，JS，图片已经全部加载完毕。
-
-DOMContentLoaded 事件触发代表初始的 HTML 被完全加载和解析，不需要等待 CSS，JS，图片加载。
-
-### 图层
-
-一般来说，可以把普通文档流看成一个图层。特定的属性可以生成一个新的图层。**不同的图层渲染互不影响**，所以对于某些频繁需要渲染的建议单独生成一个新图层，提高性能。**但也不能生成过多的图层，会引起反作用。**
-
-通过以下几个常用属性可以生成新图层
-
-- 3D 变换：`translate3d`、`translateZ`
-- `will-change`
-- `video`、`iframe` 标签
-- 通过动画实现的 `opacity` 动画转换
-- `position: fixed`
+### 总结
+1. 渲染进程将 HTML 内容转换为能够读懂的DOM 树结构。
+2. 渲染引擎将 CSS 样式表转化为浏览器可以理解的**styleSheets**，计算出 DOM 节点的样式。
+3. 创建布局树，并计算元素的布局信息。对布局树进行分层，并生成分层树。
+4. 为每个**图层**生成绘制列表，并将其提交到合成线程。
+5. **合成线程**将图层分成图块，并在**光栅化线程池中将图块转换成位图**。
+6. **合成线程**发送绘制图块命令DrawQuad给**浏览器进程**。
+7. 浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上。
 
 ### 重绘（Repaint）和回流（Reflow）
 
@@ -214,3 +183,14 @@ DOMContentLoaded 事件触发代表初始的 HTML 被完全加载和解析，不
 - 将频繁运行的动画变为图层，图层能够阻止该节点回流影响别的元素。比如对于 `video` 标签，浏览器会自动将该节点变为图层。
 
   ![](https://yck-1254263422.cos.ap-shanghai.myqcloud.com/blog/2019-06-01-042737.png)
+
+## requestAnimationFrame
+分离图层做动画有什么好处
+
+css3  GPU加速(只调用合成线程)
+
+CSS 的 transform 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上（GPU线程、浏览器进程等）执行合成动画操作
+
+will-change
+
+
