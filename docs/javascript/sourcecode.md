@@ -215,3 +215,10 @@ bound(); // foo, [22, 33, 44]
 ### 手写一个防抖/节流函数
 ### 柯里化函数的实现
 ### 手写一个深拷贝
+### 数组中的高阶函数实现
+map 
+reducer
+push pop
+filter
+splice
+sort
