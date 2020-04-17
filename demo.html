@@ -28,19 +28,20 @@
     </div>
   </div>
   <script>
-    Function.prototype.mybind = function(context) {
-      var self = this
-      var args = Array.prototype.slice.call(arguments, 1)
-      return function() {
-        // bind返回函数的传参
-        var innerArgs = Array.prototype.slice.call(arguments)
-        return self.apply(context, args.concat(innerArgs))
+    let userInfo = {
+      name:"jack.ma",
+      age:13,
+      updateInfo:function(){
+        // 模拟 xmlhttprequest 请求延时
+        setTimeout(function(){
+          console.log('this', this)
+          this.name = "pony.ma"
+          this.age = 39
+        },100)
       }
     }
-    function callMe(name, age, hope) {
-      console.log(Array.prototype.slice.call(arguments, 1))
-    }
-    callMe('1', '2', '3')
+    
+    userInfo.updateInfo()
   </script>
 </body>
 </html>

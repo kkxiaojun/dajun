@@ -67,7 +67,7 @@ SOA（Services Oriented Architecture）:面向服务的架构
 <img :src="$withBase('/image/browser/TCP.png')" alt="foo">
 
 ## 从输入URL到页面渲染经历了什么
-<img :src="$withBase('/image/javascript/jincheng.png')" alt="foo">
+<img :src="$withBase('/image/browser/main.png')" alt="foo">
 
 ### DNS 解析过程（用了什么算法）
 
@@ -95,7 +95,11 @@ SOA（Services Oriented Architecture）:面向服务的架构
 合成线程发送**绘制图块命令**DrawQuad给**浏览器进程**
 
 ### 显卡缓存与显示器的关系
-浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上
+浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上。
+
+显示器：有固定的刷新频率：如60HZ（每秒更新60张图片）。更新的图片来自显卡的**前缓冲区**。显示器读取缓冲区的图像，显示在显示器中
+
+显卡：职责（合成新的图片，保存到**后缓冲区**）。显卡一旦合成新的图像到后缓冲区，系统会让后缓冲区和前缓冲区互换（保证显示器的图片是最新的）
 
 ### 总结
 1. 渲染进程将 HTML 内容转换为能够读懂的DOM 树结构。
@@ -184,13 +188,18 @@ SOA（Services Oriented Architecture）:面向服务的架构
 
   ![](https://yck-1254263422.cos.ap-shanghai.myqcloud.com/blog/2019-06-01-042737.png)
 
-## requestAnimationFrame
-分离图层做动画有什么好处
+## 动画内容
+<img :src="$withBase('/image/browser/main.png')" alt="foo">
 
-css3  GPU加速(只调用合成线程)
+### 分离图层做动画有什么好处
+通常页面的组成是非常复杂的，有的页面里要实现一些复杂的动画效果，比如点击菜单时弹出菜单的动画特效，滚动鼠标滚轮时页面滚动的动画效果，当然还有一些炫酷的 3D 动画特效。如果没有采用分层机制，从布局树直接生成目标图片的话，**那么每次页面有很小的变化时，都会触发重排或者重绘机制**，这种“牵一发而动全身”的绘制策略会严重影响页面的渲染效率。
 
-CSS 的 transform 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上（GPU线程、浏览器进程等）执行合成动画操作
+### requestAnimationFrame
 
-will-change
+### CSS 动画比 JavaScript 动画高效的原因(will-change原理)
+几何变换和透明度变换操作，这时候渲染引擎会将该元素单独实现一帧，等这些变换发生时，渲染引擎会通过**合成线程直接去处理变换，这些变换并没有涉及到主线程**，这样就大大提升了渲染的效率
+
+1. css3  GPU加速(只调用合成线程) 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上（GPU线程、浏览器进程等）执行合成动画操作
+
 
 
