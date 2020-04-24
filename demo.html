@@ -28,20 +28,68 @@
     </div>
   </div>
   <script>
-    let userInfo = {
-      name:"jack.ma",
-      age:13,
-      updateInfo:function(){
-        // 模拟 xmlhttprequest 请求延时
-        setTimeout(function(){
-          console.log('this', this)
-          this.name = "pony.ma"
-          this.age = 39
-        },100)
+    // 防抖
+    var debounce = function(fn, delay) {
+      let timer = null
+      return function(...args) {
+        let context = this
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          fn.apply(context, args)
+        }, delay)
       }
     }
-    
-    userInfo.updateInfo()
+    // 节流
+    var throttle = function(fn, interval) {
+      let last = 0
+      return function(...args) {
+        let context = this
+        let now = +new Date()
+        if (now - last < interval) {
+          return
+        }
+        last = now
+        fn.apply(context, args)
+      }
+    }
+
+    // 终极版节流，到时间必须给相应
+    var finalThrottle = function(fn, delay) {
+      let last = 0, timer = null
+      return function(...args) {
+        let context = this
+        let now = +new Date()
+        if (now - interval < last) {
+          clearTimeout(timer)
+          last = now
+          timer = setTimeout(function() {
+            fn.apply(context, args)
+          }, delay)
+        } else {
+          // 到时间，必须给予相应
+          now = last
+          fn.apply(context, args)
+        }
+      }
+    }
+    window.onresize = throttle(myFunc, 3000);
+    function myFunc() {
+      console.log('myFunc: ')
+    }
+
+    // function throttle(fn, interval) {
+    //   let last = 0
+    //   return function (...args) {
+    //     let context = this
+    //     let now = +new Date()
+    //     // 没到时间
+    //     if (now - last < interval) {
+    //       return
+    //     }
+    //     last = now
+    //     fn.apply(this, args)
+    //   }
+    // }
   </script>
 </body>
 </html>
