@@ -13,6 +13,7 @@ module.exports = {
         { text: 'JavaScript基础', link: '/javascript/' },
         { text: '浏览器相关', link: '/broswer/' },
         { text: '网络Http', link: '/internet/' },
+        { text: 'TCP', link: '/tcp/'},
         { text: '框架基础', 
           items: [
             { text: 'Vue', link: '/Vue/'},
@@ -64,6 +65,15 @@ module.exports = {
             'base',
             'http',
             'net',
+          ]
+        }
+      ],
+      '/tcp/': [
+        {
+          title: 'TCP相关',
+          sidebarDepth: 3,
+          children: [
+            'tcp'
           ]
         }
       ]

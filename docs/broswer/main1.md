@@ -23,9 +23,9 @@
 #### Expires
 
 `Expires`即过期时间，存在于服务端返回的响应头中，告诉浏览器在这个过期时间之前可以直接从缓存里面获取数据，无需再次请求。比如下面这样:
-
+```javascript
     Expires: Wed, 22 Nov 2019 08:41:00 GMT
-    复制代码
+```
 
 表示资源在`2019年11月22号8点41分`过期，过期了就得向服务端发请求。
 
@@ -36,9 +36,9 @@
 在HTTP1.1中，采用了一个非常关键的字段：`Cache-Control`。这个字段也是存在于
 
 它和`Expires`本质的不同在于它并没有采用`具体的过期时间点`这个方式，而是采用过期时长来控制缓存，对应的字段是**max-age**。比如这个例子:
-
+```javascript
     Cache-Control:max-age=3600
-    复制代码
+```
 
 代表这个响应返回后在 3600 秒，也就是一个小时之内可以直接使用缓存。
 
@@ -247,19 +247,19 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
 好，正题开始。
 
 此时此刻，你在浏览器地址栏输入了百度的网址:
-
+```javascript
     https://www.baidu.com/
-    复制代码
+```
 
 ### 网络请求
 
 #### 1\. 构建请求
 
 浏览器会构建请求行:
-
+```javascript
     // 请求方法是GET，路径为根路径，HTTP协议版本为1.1
     GET / HTTP/1.1
-    复制代码
+```
 
 #### 2\. 查找强缓存
 
@@ -304,7 +304,7 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
 结构很简单，由**请求方法**、**请求URI**和**HTTP版本协议**组成。
 
 同时也要带上**请求头**，比如我们之前说的**Cache-Control**、**If-Modified-Since**、**If-None-Match**都由可能被放入请求头中作为缓存的标识信息。当然了还有一些其他的属性，列举如下:
-
+```javascript
     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
     Accept-Encoding: gzip, deflate, br
     Accept-Language: zh-CN,zh;q=0.9
@@ -315,7 +315,7 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
     Pragma: no-cache
     Upgrade-Insecure-Requests: 1
     User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1
-    复制代码
+```
 
 最后是请求体，请求体只有在`POST`方法下存在，常见的场景是**表单提交**。
 

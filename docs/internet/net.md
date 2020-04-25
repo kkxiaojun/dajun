@@ -18,16 +18,16 @@
 ### 起始
 
 对于请求报文来说，起始行类似下面这样:
-
+```javascript
     GET /home HTTP/1.1
-    复制代码
+```
 
 也就是**方法 \+ 路径 \+ http版本**。
 
 对于响应报文来说，起始行一般张这个样:
-
+```javascript
     HTTP/1.1 200 OK
-    复制代码
+```
 
 响应报文的起始行也叫做`状态行`。由**http版本、状态码和原因**三部分组成。
 
@@ -71,9 +71,9 @@
 *   POST: 提交数据，即上传数据
 *   PUT: 修改数据
 *   DELETE: 删除资源(几乎用不到)
-*   CONNECT: 建立连接隧道，用于代理服务器
-*   OPTIONS: 列出可对资源实行的请求方法，用来跨域请求
-*   TRACE: 追踪请求-响应的传输路径
+*   <font color=red>CONNECT</font>: 建立连接隧道，用于代理服务器
+*   <font color=red>OPTIONS</font>: 列出可对资源实行的请求方法，用来跨域请求
+*   <font color=red>TRACE</font>: 追踪请求-响应的传输路径
 
 ### GET 和 POST 有什么区别？
 
@@ -151,7 +151,7 @@ RFC 规定 HTTP 的状态码为**三位数**，被分为五类:
 
 **204 No Content**含义与 200 相同，但响应头后没有 body 数据。
 
-**206 Partial Content**顾名思义，表示部分内容，它的使用场景为 HTTP 分块下载和断点续传，当然也会带上相应的响应头字段`Content-Range`。
+**206 Partial Content**顾名思义，表示部分内容，它的使用场景为<font color=red> HTTP 分块下载和断点续传</font>，当然也会带上相应的响应头字段`Content-Range`。
 
 ### 3xx
 
@@ -258,7 +258,7 @@ HTTP 的特点概括如下:
 ### 压缩方式
 
 当然一般这些数据都是会进行编码压缩的，采取什么样的压缩方式就体现在了发送方的`Content-Encoding`字段上， 同样的，接收什么样的压缩方式体现在了接受方的`Accept-Encoding`字段上。这个字段的取值有下面几种：
-
+```javascript
 *   gzip: 当今最流行的压缩格式
 *   deflate: 另外一种著名的压缩格式
 *   br: 一种专门为 HTTP 发明的压缩算法
@@ -267,7 +267,7 @@ HTTP 的特点概括如下:
     Content-Encoding: gzip
     // 接收端
     Accept-Encoding: gzip
-    复制代码
+```
 
 ### 支持语言
 
@@ -282,12 +282,12 @@ HTTP 的特点概括如下:
 ### 字符集
 
 最后是一个比较特殊的字段, 在接收端对应为`Accept-Charset`，指定可以接受的字符集，而在发送端并没有对应的`Content-Charset`, 而是直接放在了`Content-Type`中，以**charset**属性指定。如:
-
+```
     // 发送端
     Content-Type: text/html; charset=utf-8
     // 接收端
     Accept-Charset: charset=utf-8
-    复制代码
+```
 
 最后以一张图来总结一下吧:
 
@@ -301,7 +301,7 @@ HTTP 的特点概括如下:
 对于定长包体而言，发送端在传输的时候一般会带上 `Content-Length`, 来指明包体的长度。
 
 我们用一个`nodejs`服务器来模拟一下:
-
+```
     const http = require('http');
     
     const server = http.createServer();
@@ -317,33 +317,33 @@ HTTP 的特点概括如下:
     server.listen(8081, () => {
       console.log("成功启动");
     })
-    复制代码
+```
 
 启动后访问: **localhost:8081**。
 
 浏览器中显示如下:
-
+```
     helloworld
-    复制代码
+```
 
 这是长度正确的情况，那不正确的情况是如何处理的呢？
 
 我们试着把这个长度设置的小一些:
-
+```
     res.setHeader('Content-Length', 8);
-    复制代码
+```
 
 重启服务，再次访问，现在浏览器中内容如下:
-
+```
     hellowor
-    复制代码
+```
 
 那后面的`ld`哪里去了呢？实际上在 http 的响应体中直接被截去了。
 
 然后我们试着将这个长度设置得大一些:
-
+```
     res.setHeader('Content-Length', 12);
-    复制代码
+```
 
 此时浏览器显示如下:
 
@@ -355,18 +355,18 @@ HTTP 的特点概括如下:
 
 上述是针对于`定长包体`，那么对于`不定长包体`而言是如何传输的呢？
 
-这里就必须介绍另外一个 http 头部字段了:
-
+这里就必须介绍另外一个<font color=red> http 头部字段</font>了:
+```
     Transfer-Encoding: chunked
-    复制代码
+```
 
-表示分块传输数据，设置这个字段后会自动产生两个效果:
+表示**分块传输数据**，设置这个字段后会自动产生两个效果:
 
 *   Content-Length 字段会被忽略
 *   基于长连接持续推送动态内容
 
 我们依然以一个实际的例子来模拟分块传输，nodejs 程序如下:
-
+```
     const http = require('http');
     
     const server = http.createServer();
@@ -390,7 +390,7 @@ HTTP 的特点概括如下:
     server.listen(8009, () => {
       console.log("成功启动");
     })
-    复制代码
+```
 
 访问效果入下:
 
@@ -402,7 +402,7 @@ HTTP 的特点概括如下:
 注意，`Connection: keep-alive`及之前的为响应行和响应头，后面的内容为响应体，这两部分用换行符隔开。
 
 响应体的结构比较有意思，如下所示:
-
+```
     chunk长度(16进制的数)
     第一个chunk的内容
     chunk长度(16进制的数)
@@ -410,7 +410,7 @@ HTTP 的特点概括如下:
     ......
     0
     
-    复制代码
+```
 
 最后是留有有一个`空行`的，这一点请大家注意。
 
@@ -424,9 +424,9 @@ HTTP 的特点概括如下:
 ### 如何支持
 
 当然，前提是服务器要支持**范围请求**，要支持这个功能，就必须加上这样一个响应头:
-
+```
     Accept-Ranges: none
-    复制代码
+```
 
 用来告知客户端这边是支持范围请求的。
 
@@ -445,34 +445,32 @@ HTTP 的特点概括如下:
 具体来说，请求`单段数据`和请求`多段数据`，响应头是不一样的。
 
 举个例子:
-
+```
     // 单段数据
     Range: bytes=0-9
     // 多段数据
     Range: bytes=0-9, 30-39
-    
-    复制代码
-
+```
 接下来我们就分别来讨论着两种情况。
 
 ### 单段数据
 
 对于`单段数据`的请求，返回的响应如下:
-
+```
     HTTP/1.1 206 Partial Content
     Content-Length: 10
     Accept-Ranges: bytes
     Content-Range: bytes 0-9/100
     
     i am xxxxx
-    复制代码
+```
 
 值得注意的是`Content-Range`字段，`0-9`表示请求的返回，`100`表示资源的总大小，很好理解。
 
 ### 多段数据
 
 接下来我们看看多段请求的情况。得到的响应会是下面这个形式:
-
+```
     HTTP/1.1 206 Partial Content
     Content-Type: multipart/byteranges; boundary=00000010101
     Content-Length: 189
@@ -491,7 +489,7 @@ HTTP 的特点概括如下:
     
     eex jspy e
     --00000010101--
-    复制代码
+```
 
 这个时候出现了一个非常关键的字段`Content-Type: multipart/byteranges;boundary=00000010101`，它代表了信息量是这样的:
 
@@ -520,10 +518,10 @@ HTTP 的特点概括如下:
 *   字符以**URL编码方式**编码。
 
 如：
-
+```
     // 转换过程: {a: 1, b: 2} -> a=1&b=2 -> 如下(最终形式)
     "a%3D1%26b%3D2"
-    复制代码
+```
 
 ### multipart/form-data
 
@@ -533,7 +531,7 @@ HTTP 的特点概括如下:
 *   数据会分为多个部分，每两个部分之间通过分隔符来分隔，每部分表述均有 HTTP 头部描述子包体，如`Content-Type`，在最后的分隔符会加上`--`表示结束。
 
 相应的`请求体`是下面这样:
-
+```
     Content-Disposition: form-data;name="data1";
     Content-Type: text/plain
     data1
@@ -542,7 +540,7 @@ HTTP 的特点概括如下:
     Content-Type: text/plain
     data2
     ----WebkitFormBoundaryRRJKeWfHPGrS4LKe--
-    复制代码
+```
 
 ### 小结
 
