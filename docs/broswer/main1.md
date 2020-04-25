@@ -823,7 +823,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 #### 利用 CSP
 
-CSP，即浏览器中的内容安全策略，它的核心思想就是服务器决定浏览器加载哪些资源，具体来说可以完成以下功能:
+CSP网页安全政策(Content Security Policy)，它的核心思想就是服务器决定浏览器加载哪些资源(CSP 的实质就是白名单制度)，具体来说可以完成以下功能:
 
 1.  限制其他域下的资源加载。
 2.  禁止向其它域提交数据。
@@ -1052,56 +1052,41 @@ HTTPS并不是一个新的协议, 它在`HTTP`和`TCP`的传输中建立了一�
 节流的核心思想: 如果在定时器的时间范围内再次触发，则不予理睬，等当前定时器`完成`，才能启动**下一个定时器任务**。这就好比公交车，10 分钟一趟，10 分钟内有多少人在公交站等我不管，10 分钟一到我就要发车走人！
 
 代码如下:
-
-    function throttle(fn, interval) {
-      let flag = true;
-      return function(...args) {
-        let context = this;
-        if (!flag) return;
-        flag = false;
-        setTimeout(() => {
-          fn.apply(context, args);
-          flag = true;
-        }, interval);
-      };
-    };
-    复制代码
-
-写成下面的方式也是表达一样的意思:
-
-    const throttle = function(fn, interval) {
-      let last = 0;
-      return function (...args) {
-        let context = this;
-        let now = +new Date();
-        // 还没到时间
-        if(now - last < interval) return;
-        last = now;
-        fn.apply(this, args)
-      }
+```javascript
+var throttle = function(fn, interval) {
+  let last = 0
+  return function(...args) {
+    let context = this
+    let now = +new Date()
+    if (now - last < interval) {
+      return
     }
-    复制代码
+    last = now
+    fn.apply(context, args)
+  }
+}
+```
 
 ### 防抖
 
-核心思想: 每次事件触发则删除原来的定时器，建立新的定时器。跟**王者荣耀**的**回城**功能类似，你反复触发回城功能，那么只认最后一次，从最后一次触发开始计时。
-
-    function debounce(fn, delay) {
-      let timer = null;
-      return function (...args) {
-        let context = this;
-        if(timer) clearTimeout(timer);
-        timer = setTimeout(function() {
-          fn.apply(context, args);
-        }, delay);
-      }
+核心思想: 每次事件触发则删除原来的定时器，建立新的定时器。你反复触发回城功能，那么只认最后一次，从最后一次触发开始计时。
+```javascript
+ var debounce = function(fn, delay) {
+    let timer = null;
+    return function (...args) {
+      let context = this;
+      if(timer) clearTimeout(timer);
+      timer = setTimeout(function() {
+        fn.apply(context, args);
+      }, delay);
     }
-    复制代码
+  }
+```
 
 ### 双剑合璧——加强版节流
 
 现在我们可以把`防抖`和`节流`放到一起，为什么呢？因为防抖有时候触发的太频繁会导致一次响应都没有，我们希望到了固定的时间必须给用户一个响应，事实上很多前端库就是采取了这样的思路。
-
+```javascript
     function throttle(fn, delay) {
       let last = 0, timer = null;
       return function (...args) {
@@ -1120,7 +1105,7 @@ HTTPS并不是一个新的协议, 它在`HTTP`和`TCP`的传输中建立了一�
         }
       }
     }
-    复制代码
+```
 
 第11篇: 能不能实现图片懒加载？
 -----------------
