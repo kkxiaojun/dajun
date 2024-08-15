@@ -1,147 +1,45 @@
-## XSS
+# web安全
+1. 同源策略，https
+ - 具体来讲，同源策略主要表现在 DOM、Web 数据和网络这三个层面(例如Cookie，DOM和Javascript命名空间)。
+ - 若请求链接中的协议、主机名、端口、方法等任何一个不一样，都是不同源请求
+ - https在HTTP和TCP的传输中建立了一个安全层，利用对称加密和非对称加密结合数字证书认证的方式，让传输过程的安全性大大提高
 
-> **跨网站指令码**（英语：Cross-site scripting，通常简称为：XSS）是一种网站应用程式的安全漏洞攻击，是[代码注入](https://www.wikiwand.com/zh-hans/%E4%BB%A3%E7%A2%BC%E6%B3%A8%E5%85%A5)的一种。它允许恶意使用者将程式码注入到网页上，其他使用者在观看网页时就会受到影响。这类攻击通常包含了 HTML 以及使用者端脚本语言。
+2. csp
+- 内容安全策略，可以在HTML中的meta标签或者服务端返回的http res header `Content-Secrity-Policy`头中进行设置
+- 可以指定资源的请求域、资源的加载方式等
 
-XSS 分为三种：反射型，存储型和 DOM-based
-
-### 如何攻击
-
-XSS 通过修改 HTML 节点或者执行 JS 代码来攻击网站。
-
-例如通过 URL 获取某些参数
-
-```html
-<!-- http://www.domain.com?name=<script>alert(1)</script> -->
-<div>{{name}}</div>                                                  
+设置，nginx或者是服务端
+```
+Content-Security-Policy: img-src a.b.c; script-src 'unsafe-inline' a.b.c; style-src 'self'
 ```
 
-上述 URL 输入可能会将 HTML 改为 `<div><script>alert(1)</script></div>` ，这样页面中就凭空多了一段可执行脚本。这种攻击类型是反射型攻击，也可以说是 DOM-based 攻击。
+3. xss 跨站脚本攻击
 
-也有另一种场景，比如写了一篇包含攻击代码 `<script>alert(1)</script>` 的文章，那么可能浏览文章的用户都会被攻击到。这种攻击类型是存储型攻击，也可以说是 DOM-based 攻击，并且这种攻击打击面更广。
+- 持久型XSS是最常见的XSS攻击，主要通过输入框、富文本等组件输入一些恶意的脚本代码，存储到服务端之后，当其他用户打开页面加载该脚本时便出现攻击行为
+- 反射型XSS是需要用户点击黑客提供的恶意链接，该恶意链接会在跳转到正常页面的同时执行黑客脚本
+- DOM型XSS存在于一些第三方插件中,文档型的 XSS 攻击并不会经过服务端，而是作为中间人的角色，在数据传输过程劫持到网络数据包，然后修改里面的 html 文档！(这样的劫持方式包括WIFI路由器劫持或者本地恶意软件等。)
 
-### 如何防御
+防范：
+  - 对于XSS的防范主要是防范持久型XSS，在页面的输入框和富文本提交时对字符串做过滤处理，同时在页面中只对可信的HTML文本做解析
+  - csp
+  - HttpOnly, 不让读取cookies
 
-最普遍的做法是转义输入输出的内容，对于引号，尖括号，斜杠进行转义
+React 在渲染 HTML 内容和渲染 DOM 属性时都会将 "'&<> 这几个字符进行转义，转义部分源码如下：
 
 ```js
-function escape(str) {
-	str = str.replace(/&/g, "&amp;");
-	str = str.replace(/</g, "&lt;");
-	str = str.replace(/>/g, "&gt;");
-	str = str.replace(/"/g, "&quto;");
-	str = str.replace(/'/g, "&#39;");
-	str = str.replace(/`/g, "&#96;");
-    str = str.replace(/\//g, "&#x2F;");
-    return str
-}
+  '<'.charCodeAt()
+  case 60: // <
+        escape = '&lt;';
 ```
 
-通过转义可以将攻击代码 `<script>alert(1)</script>` 变成
+4. csrf跨站请求伪造
+跨站请求伪造，当用户在正常的网站登录之后，由于**同源请求会默认携带Cookie**，因此黑客可以在自己的网站中向正常网站发送伪造请求来冒充用户自己的操作
 
-```js
-// -> &lt;script&gt;alert(1)&lt;&#x2F;script&gt;
-escape('<script>alert(1)</script>')
-```
+- 攻击方式主要包含通过标签的src属性、href属性以及form的action属性等，通常是伪造GET请求
+- 防范方式包含使用POST请求处理资源、服务端验证请求的Referer、禁止第三方网站请求携带Cookie（SameSite）以及最后在请求时增加csrftoken字段做校验
 
-对于显示富文本来说，不能通过上面的办法来转义所有字符，因为这样会把需要的格式也过滤掉。这种情况通常采用白名单过滤的办法，当然也可以通过黑名单过滤，但是考虑到需要过滤的标签和标签属性实在太多，更加推荐使用白名单的方式。
+5. sql注入
+通过操作输入来修改SQL语句
 
-```js
-var xss = require("xss");
-var html = xss('<h1 id="title">XSS Demo</h1><script>alert("xss");</script>');
-// -> <h1>XSS Demo</h1>&lt;script&gt;alert("xss");&lt;/script&gt;
-console.log(html);
-```
-
-以上示例使用了 `js-xss` 来实现。可以看到在输出中保留了 `h1` 标签且过滤了 `script` 标签
-
-<font color=red>XSS相关的cookie</font>：
-1. `HttpOnly`,通过JavaScript的 **Document.cookie API无法访问带有 HttpOnly 标记的Cookie**，它们只应该发送给服务端。如果包含服务端 Session 信息的 Cookie 不想被客户端 JavaScript 脚本调用，那么就应该为其设置 HttpOnly 标记。
-
-2. 
-### CSP
-
-> 内容安全策略   ([CSP](https://developer.mozilla.org/en-US/docs/Glossary/CSP)) 是一个额外的安全层，用于检测并削弱某些特定类型的攻击，包括跨站脚本 ([XSS](https://developer.mozilla.org/en-US/docs/Glossary/XSS)) 和数据注入攻击等。无论是数据盗取、网站内容污染还是散发恶意软件，这些攻击都是主要的手段。
-
-我们可以通过 CSP 来尽量减少 XSS 攻击。CSP 本质上也是建立白名单，规定了浏览器只能够执行特定来源的代码。
-
-通常可以通过 HTTP Header 中的 `Content-Security-Policy` 来开启 CSP
-
-- 只允许加载本站资源
-
-  ```http
-  Content-Security-Policy: default-src ‘self’
-  ```
-
-- 只允许加载 HTTPS 协议图片
-
-  ```http
-  Content-Security-Policy: img-src https://*
-  ```
-
-- 允许加载任何来源框架
-
-  ```http
-  Content-Security-Policy: child-src 'none'
-  ```
-
-更多属性可以查看 [这里](https://content-security-policy.com/)
-
-## CSRF
-
-> **跨站请求伪造**（英语：Cross-site request forgery），也被称为 **one-click attack** 或者 **session riding**，通常缩写为 **CSRF** 或者 **XSRF**， 是一种挟制用户在当前已登录的Web应用程序上执行非本意的操作的攻击方法。[[1\]](https://www.wikiwand.com/zh/%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0#citenoteRistic1) 跟[跨網站指令碼](https://www.wikiwand.com/zh/%E8%B7%A8%E7%B6%B2%E7%AB%99%E6%8C%87%E4%BB%A4%E7%A2%BC)（XSS）相比，**XSS** 利用的是用户对指定网站的信任，CSRF 利用的是网站对用户网页浏览器的信任。
-
-简单点说，CSRF 就是利用用户的登录态发起恶意请求。
-
-### 如何攻击
-
-假设网站中有一个通过 Get 请求提交用户评论的接口，那么攻击者就可以在钓鱼网站中加入一个图片，图片的地址就是评论接口
-
-```html
-<img src="http://www.domain.com/xxx?comment='attack'"/>
-```
-
- 如果接口是 Post 提交的，就相对麻烦点，需要用表单来提交接口
-
-```html
-<form action="http://www.domain.com/xxx" id="CSRF" method="post">
-    <input name="comment" value="attack" type="hidden">
-</form>
-```
-
-### 如何防御
-
-防范 CSRF 可以遵循以下几种规则：
-
-1. Get 请求不对数据进行修改
-2. 不让第三方网站访问到用户 Cookie
-3. 阻止第三方网站请求接口
-4. 请求时附带验证信息，比如验证码或者 token
-
-#### SameSite
-
-可以对 Cookie 设置 <font color=red>`SameSite` 属性。该属性设置 Cookie 不随着跨域请求发送，该属性可以很大程度减少 CSRF 的攻击</font>，但是该属性目前并不是所有浏览器都兼容。
-
-#### 验证 Referer
-
-对于需要防范 CSRF 的请求，我们可以通过验证 Referer 来判断该请求是否为第三方网站发起的。
-
-#### Token
-
-服务器下发一个随机 Token（算法不能复杂），每次发起请求时将 Token 携带上，服务器验证 Token 是否有效。
-
-## 密码安全
-
-密码安全虽然大多是后端的事情，但是作为一名优秀的前端程序员也需要熟悉这方面的知识。
-
-### 加密
-
-对于密码存储来说，必然是不能明文存储在数据库中的，否则一旦数据库泄露，会对用户造成很大的损失。并且不建议只对密码单纯通过加密算法加密，因为存在彩虹表的关系。
-
-通常需要对密码加密，然后进行几次不同加密算法的加密。
-
-```js
-// 加密也就是给原密码添加字符串，增加原密码长度
-sha256(sha1(md5(salt + password + salt)))
-```
-
-但是加密并不能阻止别人盗取账号，只能确保即使数据库泄露，也不会暴露用户的真实密码。一旦攻击者得到了用户的账号，可以通过暴力破解的方式破解密码。对于这种情况，通常使用验证码增加延时或者限制尝试次数的方式。并且一旦用户输入了错误的密码，也不能直接提示用户输错密码，而应该提示账号或密码错误。
+- 验证用户输入：验证用户输入的数据，确保其符合预期格式，避免非法字符等。
+- 转义特殊字符：在使用用户输入的数据构造 SQL 语句时，对特殊字符进行转义，以防止注入。

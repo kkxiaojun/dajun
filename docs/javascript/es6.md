@@ -1,4 +1,4 @@
-## ES6
+# ES6
 ES6， 全称 ECMAScript 6.0 ，是 JavaScript 的下一个版本标准，2015.06 发版。
 
 ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有类的概念，但是目前浏览器的 JavaScript 是 ES5 版本，大多数高版本的浏览器也支持 ES6，不过只实现了 ES6 的部分特性和功能。
@@ -6,15 +6,15 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 
 
 例如箭头函数(arrow functions)和简单的字符串插值(string interpolation),大到烧脑的新概念,例如代理(proxy)和生成器(generators) 等，经常使用，才更熟悉。
-### let与const和块级作用域
+## let与const和块级作用域
 
-#### es5的特点
+### es5的特点
 
 * var 与 function 存在变量提升
 * var 只会提前声明，function 既声明又定义
 * 在全局作用域下，使用 var 和 function 声明的变量会给 window 增加属性
 
-#### es6的特点
+### es6的特点
 
 **let**
 
@@ -30,7 +30,7 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 - const 定义变量，一旦声明必须赋值
 - const 定义的是一个常量，不可以重新赋值
 
-#### 解决的痛点
+### 解决的痛点
 
 1. 块级作用域
 2. 不存在变量提升（减少运行时错误，防止变量声明前就使用这个变量）
@@ -38,7 +38,7 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 <img :src="$withBase('/image/es6/let.jpg')" alt="foo">
 <img :src="$withBase('/image/es6/const.jpg')" alt="foo">
 
-### 字符串的扩展
+## 字符串的扩展
 
 常用方法
 
@@ -65,7 +65,7 @@ ES6 主要是为了解决 ES5 的先天不足，比如 JavaScript 里并没有�
 
 **模版字符串**：${}
 
-### 数组的扩展
+## 数组的扩展
 
 1. 数组的转换：Array.from(),Array.of()      去重，转换累数组
 
@@ -95,7 +95,7 @@ includes(),(解决es5的**indexOf**不能发现**NaN**的不足
 
 
 
-### 解构赋值
+## 解构赋值
 
 1. 数组的解构赋值
 
@@ -123,7 +123,7 @@ includes(),(解决es5的**indexOf**不能发现**NaN**的不足
 
 <img :src="$withBase('/image/es6/jiegou.jpg')" alt="foo">
 
-### 函数的扩展
+## 函数的扩展
 
 1. 参数解构赋值。
 
@@ -172,16 +172,15 @@ includes(),(解决es5的**indexOf**不能发现**NaN**的不足
    ```
 
    注意的问题：
-
-   - 若函数体只有一行代码的话，就可以省略`{}`，若只有一个参数，就可以省略小括号。
-   - 通常函数当做参数的时候(回调函数)使用箭头函数
    - 箭头函数没有this指向，它里面的this是上一级的作用域
    - 箭头函数没有arguments
    - 箭头函数不可以用作构造函数 因为不可以使用new执行
+   - 没有`new.target`
+   - 没有原型，`Foo.prototype undefinded`
 
 <img :src="$withBase('/image/es6/function.jpg')" alt="foo">
 
-### 对象的扩展
+## 对象的扩展
 
 1. 简洁写法
 
@@ -237,7 +236,7 @@ includes(),(解决es5的**indexOf**不能发现**NaN**的不足
 
 <img :src="$withBase('/image/es6/object.jpg')" alt="foo">
 
-### Promise
+## Promise
 
 - Promise的实例分为三个状态，一开始的状态就是pending（等待）状态，一旦new后，立马执行函数。
 - 执行函数的顺序：new Promise中的代码 ===> 当前队列中的同步代码 ===> then(异步)里面的回调函数
@@ -264,7 +263,7 @@ console.log("因为then方法是异步的，所以不会等待，跳过直接进
 
 <img :src="$withBase('/image/es6/promise.jpg')" alt="foo">
 
-### Symbol，Set，Map
+## Symbol，Set，Map
 
 1. Set去重
 
@@ -272,6 +271,7 @@ console.log("因为then方法是异步的，所以不会等待，跳过直接进
    Array.from(new Set(arr))
    
    [...new Set(arr)]
+   
    ```
 
 2. map.提供了“值-值”对应，更完善
@@ -279,20 +279,58 @@ console.log("因为then方法是异步的，所以不会等待，跳过直接进
 <img :src="$withBase('/image/es6/set.jpg')" alt="foo">
 <img :src="$withBase('/image/es6/map.jpg')" alt="foo">
 
-### WeakSet WeakMap
+## Object、Map
+### 用法对比
+1. 对于 Object 而言，它键（key）的类型只能是字符串，数字或者 Symbol；而对于 Map 而言，它可以是任何类型。（包括 Date，Map，或者自定义对象）
+2. Map 中的元素会保持其插入时的顺序；而 Object 则不会完全保持插入时的顺序，而是根据如下规则进行排序
+3. 长度的读取；Map.size() Object.keys(obj).length
+4. Map 是可迭代对象，所以其中的键值对是可以通过 for of 循环或 .foreach() 方法来迭代的；而普通的对象键值对则默认是不可迭代的，只能通过 for in 循环来访问
+5. 在 Map 中新增键时，不会覆盖其原型上的键；而在 Object 中新增键时，则有可能覆盖其原型上的键;
+6. JSON 默认支持 Object 而不支持 Map。
+
+## WeakSet WeakMap
+::: tip
+弱引用： WeakMap 可以帮你省掉手动删除对象关联数据的步骤
+:::
+
 `WeakSet`
 1. key必须是对象类型
 2. 不可枚举
-3. 若引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）
+3. 弱引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）。正常的new Object需要手动设置null
 
 `WeakMap`
 1. key必须是对象类型
 2. 不可枚举
-3. 若引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）
+3. 弱引用（当其key所指对象没有其他地方引用的时候，他会被GC回收掉）。正常的new Object需要手动设置null
 
-### Class
 
-#### 定义类
+## Class
+
+### 原理
+ Babel 将 class extends 编译成了 ES5 组合模式的继承，这才是 JavaScript 面向对象的实质。
+
+ 组合模式的继承：
+
+ 原型链继承和经典继承双剑合璧。
+
+使用原型链实现对原型属性和方法的继承，而通过借用构造函数来实现对实例属性的继承
+
+ ```javascript
+ function Parent(value) {
+    this.val = value
+}
+Parent.prototype.getValue = function (){
+    console.log(console.log(this.val))
+}
+function Child(value) {
+    Parent.call(this, value)
+}
+Child.prototype = new Parent()
+child.getValue() // 1
+child instanceof Parent // true
+ ``` 
+
+### 定义类
 
 类实际上是个“特殊的函数”，就像你能够定义的函数声明和函数表达式一样，类语法有两个组成部分：类表达式和类声明
 
@@ -327,7 +365,7 @@ let Car = class Rectangle {
 };
 ```
 
-#### 构造函数
+### 构造函数
 
 `constructor`方法是一个特殊的方法，这种方法用于创建和初始化一个由`class`创建的对象。一个类只能拥有一个名为 “constructor”的特殊方法。
 
@@ -357,7 +395,7 @@ console.log(mul.sum);
 // 100
 ```
 
-#### 静态方法
+### 静态方法
 
 ```javascript
 class Point {
@@ -382,7 +420,7 @@ console.log(Point.distance(p1, p2));
 
 
 
-### 总结
+## 总结
 
 目前常用的有
 
@@ -392,7 +430,3 @@ console.log(Point.distance(p1, p2));
 4. 扩展运算符。[...arr1,...arr2]合并数组
 5. Array.from(new Set(arr))，[...new Set(arr)] 数组去重
 6. Object.keys(),Object.values()
-
-
-
-还有Proxy，Iterator，Generator等，未完，下一期

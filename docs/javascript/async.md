@@ -1,14 +1,15 @@
-## 异步编程
+# 异步编程
 
 主要是了解我们常用的，发送异步请求的内容
-### 并发concurrency和并行parallelism
+
+## 并发concurrency和并行parallelism
 **并发**
 并发是宏观概念，我分别有任务 A 和任务 B，在一段时间内通过任务间的切换完成了这两个任务，这种情况就可以称之为并发。（可以不同时）
 
 **并行**
 并行是微观概念，假设 CPU 中存在两个核心，那么我就可以同时完成任务 A、B。同时完成多个任务的情况就可以称之为并行。（同时）
 
-### ajax
+## ajax
 **基础**
 发送异步请求
 
@@ -66,7 +67,7 @@ Ajax的工作原理相当于在用户和服务器之间加了—个中间层(AJA
 - 对搜索引擎支持较弱
 - 违背了URI和资源定位的初衷
 
-### callback hell 
+## callback hell 
 
 ```javascript
 ajax(url, () => {
@@ -86,7 +87,90 @@ ajax(url, () => {
 * 嵌套函数存在耦合性，一旦有所改动，就会牵一发而动全身
 * 嵌套函数一多，就很难处理错误
 
-### Generator
+## Promise
+::: tip
+Promise 的特点是什么，分别有什么优缺点？什么是 Promise 链？Promise 构造函数执行和 then 函数执行有什么区别？ 
+:::
+
+1. Promise意为承诺，有三种状态
+  * `pending`(等待)
+  * `resolve`(完成)
+  * `reject`(拒绝)
+
+2. Promise从`pending`变成为`resolve`或者`reject`就不能更改状态了
+```javascript
+new Promise((resolve, reject) => {
+  resolve('success')
+  // 无效
+  reject('reject')
+})
+```
+
+3. Promise的构造函数是立即执行的
+```javascript
+new Promise((resolve, reject) => {
+  console.log('new Promise')
+  resolve('success')
+})
+console.log('finifsh')
+// new Promise -> finifsh
+```
+
+4. Promise 实现了链式调用，也就是说每次调用 `then` 之后返回的都是一个 Promise，并且是**一个全新的 Promise**，原因也是因为状态不可变。如果你在 then 中 使用了 return，那么 return 的值会被 Promise.resolve() 包装
+```javascript
+Promise.resolve(1)
+  .then(res => {
+    console.log(res) // => 1
+    return 2 // 包装成 Promise.resolve(2)
+  })
+  .then(res => {
+    console.log(res) // => 2
+  })
+```
+
+**常用方法**
+`Promise.all()`.
+
+将多个 Promise 实例，包装成一个新的 Promise 实例。如果参数中 promise 有一个失败（rejected），此实例回调失败（reject），失败原因的是第一个失败 promise 的结果
+
+特点：
+1. 只有p1、p2、p3的状态都变成fulfilled，p的状态才会变成fulfilled
+2. 只要p1、p2、p3之中有一个被rejected，p的状态就变成rejected
+
+`Promise.race()`
+方法返回一个 promise，一旦迭代器中的某个promise解决或拒绝，返回的 promise就会解决或拒绝。 
+
+<font color=red> Promise.race 的一般使用场景是给 Promise 设置一个 timeout/deadline </font>
+
+```javascript
+function timeoutPromise(delay) {
+    return new Promise( function(resolve,reject){
+        setTimeout( function(){
+            reject( "Timeout!" );
+        }, delay );
+    } );
+}
+
+Promise.race( [
+    foo(),
+    timeoutPromise( 3000 )
+] )
+.then(function(){}, function(err){});
+```
+
+`Promise.allSettled()`
+
+方法返回一个在所有给定的promise已被决议或被拒绝后决议的promise，并带有一个对象数组，每个对象表示对应的promise结果。
+
+
+前面都是在讲述 Promise 的一些优点和特点，其实它也是存在一些缺点的，比如无法取消 Promise，错误需要通过回调函数捕获。
+
+## 实现一个promise
+
+## fetch
+1. fetch 不会发送 cookies。除非你使用了credentials 的初始化选项。
+2. 为了让浏览器发送包含凭据的请求（即使是跨域源），要将credentials: 'include'添加到传递给 fetch()方法的init对象。
+## Generator
 
 ::: tip
 
@@ -134,11 +218,211 @@ let result2 = it.next()
 let result3 = it.next()
 ```
 
-wait,async是generaotr的语法糖
+## 实现一个简版的generator自动执行函数
+::: tip
+ Generator 函数的自动执行需要一种机制，即当异步操作有了结果，能够自动交回执行权。
+::: 
 
-### async 及 await
+而两种方法可以做到这一点。
 
-一个函数如果加上 `async` ，那么该函数就会返回一个 `Promise`
+（1）回调函数。将异步操作进行包装，暴露出回调函数，在回调函数里面交回执行权。
+
+（2）Promise 对象。将异步操作包装成 Promise 对象，用 then 方法交回执行权。
+
+
+### Promise获取每一步的结果
+```javascript
+// generator的自动执行机制
+
+function fet(name) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        name: name
+      })
+    })
+  })
+}
+
+function* gen() {
+  let i = yield fet('kk')
+  let j = yield fet('kcy')
+  let k = yield fet('lds')
+}
+
+let g = gen()
+let result = g.next()
+console.log('result---', result)
+
+// 为了获取每一步的结果
+
+result.value.then(data => {
+  console.log('data', data)
+  return data
+})
+.then(res => {
+  return g.next().value
+})
+.then(data => {
+  console.log('data1', data)
+})
+.then(res => {
+  return g.next().value
+})
+.then(data => {
+  console.log('data2', data)
+})
+
+```
+
+### 递归获取
+```javascript
+// 用递归实现
+function run(gen) {
+  let g = gen()
+  function next() {
+    let result = g.next()
+    if (result.done) {
+      return
+    }
+    result.value.then(data => {
+      console.log('data-11', data)
+      next()
+    }).then(data => {
+    })
+  }
+  next()
+}
+
+run(gen)
+
+// 同步的情况
+function run(gen) {
+  var g = gen();
+
+  function next(data) {
+      var result = g.next(data);
+
+      if (result.done) return;
+
+      result.value(next);
+  }
+
+  next();
+}
+
+run(gen)
+```
+### run启动器函数 
+
+```javascript
+// 进一步封装
+// 第一版
+function run(gen) {
+  var gen = gen();
+
+  function next(data) {
+      var result = gen.next(data);
+      if (result.done) return;
+
+      if (isPromise(result.value)) {
+          result.value.then(function(data) {
+              next(data);
+          });
+      } else {
+          result.value(next)
+      }
+  }
+
+  next()
+}
+
+function isPromise(obj) {
+  return 'function' == typeof obj.then;
+}
+
+module.exports = run;
+```
+优化
+```javascript
+// 第二版
+function run(gen) {
+    var gen = gen();
+
+    return new Promise(function(resolve, reject) {
+
+        function next(data) {
+            try {
+                var result = gen.next(data);
+            } catch (e) {
+                return reject(e);
+            }
+
+            if (result.done) {
+                return resolve(result.value)
+            };
+
+            var value = toPromise(result.value);
+
+            value.then(function(data) {
+                next(data);
+            }, function(e) {
+                reject(e)
+            });
+        }
+
+        next()
+    })
+
+}
+
+function isPromise(obj) {
+    return 'function' == typeof obj.then;
+}
+
+function toPromise(obj) {
+    if (isPromise(obj)) return obj;
+    if ('function' == typeof obj) return thunkToPromise(obj);
+    return obj;
+}
+
+function thunkToPromise(fn) {
+    return new Promise(function(resolve, reject) {
+        fn(function(err, res) {
+            if (err) return reject(err);
+            resolve(res);
+        });
+    });
+}
+
+module.exports = run;
+```
+
+
+## async 及 await
+
+其实async函数的原理，就是将Generator函数和自动执行器，包装在一个函数里
+
+```javascript
+async function fn(args) {
+  // ...
+}
+
+// 等同于
+function fn(args) {
+  return spawn(function* () {
+    // ...
+  });
+}
+```
+
+spawn 函数指的是自动执行器，就比如说 co。
+
+再加上 async 函数返回一个 Promise 对象，你也可以理解为 async 函数是基于 Promise 和 Generator 的一层封装。
+
+
+
+**一个函数如果加上 `async` ，那么该函数就会返回一个 `Promise`**
 
 ```javascript
 async function test() {
@@ -190,129 +474,23 @@ console.log('1', a) // -> '1' 1
 
 上述解释中提到了 `await` 内部实现了 `generator`，其实 `await` 就是 `generator` 加上 `Promise` 的语法糖，且内部实现了自动执行 `generator`。如果你熟悉 co 的话，其实自己就可以实现这样的语法糖。
 
-### Promise
-::: tip
-Promise 的特点是什么，分别有什么优缺点？什么是 Promise 链？Promise 构造函数执行和 then 函数执行有什么区别？ 
-:::
+## websoket
+> WebSocket 使用ws或wss协议，Websocket是一个持久化的协议，相对于HTTP这种非持久的协议来说。WebSocket API最伟大之处在于服务器和客户端可以在给定的时间范围内的任意时刻，**相互**推送信息。WebSocket并不限于以Ajax(或XHR)方式通信，因为Ajax技术需要客户端发起请求，而WebSocket服务器和客户端可以彼此相互推送信息；XHR受到域的限制，而WebSocket允许跨域通信。它实现了浏览器与服务器的全双工通信，扩展了浏览器与服务端的通信功能，使服务端也能主动向客户端发送数据。
 
-1. Promise意为承诺，有三种状态
-  * `pending`(等待)
-  * `resolve`(完成)
-  * `reject`(拒绝)
+与ajax的区别：
 
-2. Promise从`pending`变成为`resolve`或者`reject`就不能更改状态了
-```javascript
-new Promise((resolve, reject) => {
-  resolve('success')
-  // 无效
-  reject('reject')
-})
-```
+1. 本质不同
+ajax，即异步JavaScript和XML，是一种创建交互式网页应用的网页开发技术；
+webSocket是HTML5一种新的协议，实现了浏览器与服务器全双工通信。其本质是先通过HTTP/HTTPS协议进行握手后创建一个用于交换数据的TCP连接，服务端与客户端通过此TCP连接进行实时通信。
 
-3. Promise的构造函数是立即执行的
-```javascript
-new Promise((resolve, reject) => {
-  console.log('new Promise')
-  resolve('success')
-})
-console.log('finifsh')
-// new Promise -> finifsh
-```
+2. 生命周期不同
+websocket建立的是长连接，在一个会话中一直保持连接；而ajax是短连接，数据发送和接收完成后就会断开连接。
 
-4. Promise 实现了链式调用，也就是说每次调用 `then` 之后返回的都是一个 Promise，并且是**一个全新的 Promise**，原因也是因为状态不可变。如果你在 then 中 使用了 return，那么 return 的值会被 Promise.resolve() 包装
-```javascript
-Promise.resolve(1)
-  .then(res => {
-    console.log(res) // => 1
-    return 2 // 包装成 Promise.resolve(2)
-  })
-  .then(res => {
-    console.log(res) // => 2
-  })
-```
+3. 适用范围不同
+websocket一般用于前后端实时数据交互；而ajax前后端非实时数据交互。
 
-前面都是在讲述 Promise 的一些优点和特点，其实它也是存在一些缺点的，比如无法取消 Promise，错误需要通过回调函数捕获。
-### 常用定时器函数
-
-异步编程当然少不了定时器了，常见的定时器函数有 `setTimeout`、`setInterval`、`requestAnimationFrame`。我们先来讲讲最常用的`setTimeout`，很多人认为 `setTimeout` 是延时多久，那就应该是多久后执行。
-
-其实这个观点是错误的，因为 JS 是单线程执行的，如果前面的代码影响了性能，就会导致 `setTimeout` 不会按期执行。当然了，我们可以通过代码去修正 `setTimeout`，从而使定时器相对准确
-
-```javascript
-let period = 60 * 1000 * 60 * 2
-let startTime = new Date().getTime()
-let count = 0
-let end = new Date().getTime() + period
-let interval = 1000
-let currentInterval = interval
-
-function loop() {
-  count++
-  // 代码执行所消耗的时间
-  let offset = new Date().getTime() - (startTime + count * interval);
-  let diff = end - new Date().getTime()
-  let h = Math.floor(diff / (60 * 1000 * 60))
-  let hdiff = diff % (60 * 1000 * 60)
-  let m = Math.floor(hdiff / (60 * 1000))
-  let mdiff = hdiff % (60 * 1000)
-  let s = mdiff / (1000)
-  let sCeil = Math.ceil(s)
-  let sFloor = Math.floor(s)
-  // 得到下一次循环所消耗的时间
-  currentInterval = interval - offset 
-  console.log('时：'+h, '分：'+m, '毫秒：'+s, '秒向上取整：'+sCeil, '代码执行时间：'+offset, '下次循环间隔'+currentInterval) 
-
-  setTimeout(loop, currentInterval)
-}
-
-setTimeout(loop, currentInterval)
-```
-
-接下来我们来看 `setInterval`，其实这个函数作用和 `setTimeout` 基本一致，只是该函数是每隔一段时间执行一次回调函数。
-
-通常来说不建议使用 `setInterval`。第一，它和 `setTimeout` 一样，不能保证在预期的时间执行任务。第二，它存在执行累积的问题，请看以下伪代码:
-
-```javascript
-function demo() {
-  setInterval(function(){
-    console.log(2)
-  },1000)
-  sleep(2000)
-}
-demo()
-```
-
-以上代码在浏览器环境中，如果定时器执行过程中出现了耗时操作，多个回调函数会在耗时操作结束以后同时执行，这样可能就会带来性能上的问题。
-
-如果你有循环定时器的需求，其实完全可以通过 `requestAnimationFrame` 来实现:
-
-```javascript
-function setInterval(callback, interval) {
-  let timer
-  const now = Date.now
-  let startTime = now()
-  let endTime = startTime
-  const loop = () => {
-    timer = window.requestAnimationFrame(loop)
-    endTime = now()
-    if (endTime - startTime >= interval) {
-      startTime = endTime = now()
-      callback(timer)
-    }
-  }
-  timer = window.requestAnimationFrame(loop)
-  return timer
-}
-
-let a = 0
-setInterval(timer => {
-  console.log(1)
-  a++
-  if (a === 3) cancelAnimationFrame(timer)
-}, 1000)
-```
-
-首先 `requestAnimationFrame` 自带函数节流功能，基本可以保证在 16.6 毫秒内只执行一次（不掉帧的情况下），并且该函数的延时效果是精确的，没有其他定时器时间不准的问题，当然你也可以通过该函数来实现 `setTimeout`。
+4. 发起人不同
+ajax技术需要客户端发起请求(自己请求回来的数据用户自己看)；而websocket服务器和客户端可以相互推送信息(用户A请求返回来的东西A用户可以看B用户也可以看；如果是属于公共的那大家都可以看)。
 
 ## Event loop
 
@@ -355,6 +533,10 @@ setInterval(timer => {
 <img :src="$withBase('/image/javascript/event-loop-2.png')" alt="foo">
 
 
+JavaScript 中所有任务分为同步任务和异步任务：
+
+* 同步任务是指：当前主线程将要消化执行的任务，这些任务一起形成执行栈（execution context stack）
+* 异步任务是指：不进入主线程，而是进入任务队列（task queue），即不会马上进行的任务。
 
 不同的任务源会被分配到不同的 Task 队列中，任务源可以分为 **微任务**（microtask） 和 **宏任务**（macrotask）。在 ES6 规范中，microtask 称为 `jobs`，macrotask 称为 `task`。下面来看以下代码的执行顺序：
 
@@ -411,14 +593,15 @@ new Promise((resolve, reject) => {
 ```
 
 
+js是单线程的，非阻塞的
+**事件循环就是通过异步执行任务的方法来解决单线程的弊端的。**
 
-Event Loop过程：
-
-1. 首先执行同步代码，这属于**宏任务**
-2. 当执行完所有同步代码后，执行栈为空，查询是否有异步代码需要执行
-3. 执行所有**微任务**
-4. 当执行完所有微任务后，如有必要会**UI渲染**
-5. 然后开始下一轮 Event Loop，执行宏任务中的异步代码，也就是 setTimeout 中的回调函数
+1. 一开始整个脚本作为一个宏任务执行
+2. 执行过程中同步代码直接执行，宏任务进入宏任务队列，微任务进入微任务队列
+3. 当前宏任务执行完出队，读取微任务列表，有则依次执行，直到全部执行完
+4. 执行浏览器 UI 线程的渲染工作
+5. 检查是否有 Web Worker 任务，有则执行
+6. 执行完本轮的宏任务，回到第 2 步，继续依此循环，直到宏任务和微任务队列都为空
 
 
 
@@ -484,3 +667,5 @@ Event Loop过程：
 **思路引导：**
 
 这其实是很大的一块内容。你可以先说 JS 是单线程运行的，这里就可以说说你理解的线程和进程的区别。然后讲到执行栈，接下来的内容就是涉及 Eventloop 了，微任务和宏任务的区别，哪些是微任务，哪些又是宏任务，还可以谈及浏览器和 Node 中的 Eventloop 的不同，最后还可以聊一聊 JS 中的垃圾回收。
+
+如何让你自己的回答充满思考与总结？

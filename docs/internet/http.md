@@ -3,15 +3,11 @@
 tcp 三次握手
 
 简单讲了一下非对称加密的握手过程
-证书签名过程和如何防止被串改
 
 HTTPS 加密(对称加密有AES + CHACHA20, 分组模式以前有 CBC、CTR，TLS1.3 中只剩下 GCM，非对称加密 RSA、ECDHE)
 
 
 怎么握手的呢？(讲了三个版本：传统 RSA、TLS1.2、TLS1.3, 后面也讲了 TLS1.3 的 Session ID、Session Ticket 以及 PSK)
-
-
-HTTPS 如何保证数据是否被篡改？(说了下有签名的过程)
 
 
 签名是什么原理(私钥加密，公钥解密，比对哈希摘要)

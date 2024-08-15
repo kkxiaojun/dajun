@@ -318,6 +318,30 @@ function quickSort(arr, low, high) {
 
 3. 重新调整结构，使其满足堆定义，然后继续交换堆顶元素与当前末尾元素，反复执行调整+交换步骤，直到整个序列有序。
 
+```javascript
+function heapSort(arr) {
+  for (let index = arr.length - 1; index >=1; index--) {
+    buildHeap(arr, index)
+    swap(arr, 0, index)
+  }
+  return arr
+}
+
+function buildHeap(arr, end) {
+  let len = end + 1
+  for (let index = len / 2 - 1; index >= 0; index--) {
+    let leftChild = 2 * index + 1, rightChild = 2 * index + 2
+    let maxChild = leftChild
+    if (rightChild < len && arr[leftChild] < arr[rightChild]) {
+      maxChild = rightChild
+    }
+    if (arr[index] < arr[maxChild]) {
+      swap(arr, index, maxChild)
+    }
+  }
+}
+```
+
 ### 计数排序
 **原理**
 计数排序（Counting sort）是一种稳定的线性时间排序算法。计数排序使用一个额外的数组C ，其中第i个元素是待排序数组A中值等于i的元素的个数。然后根据数组C来将A中的元素排到正确的位置。

@@ -4,10 +4,18 @@
 第1篇: 能不能说一说浏览器缓存?
 -----------------
 
+实际方案：强缓存与协商缓存相结合的方案
+
+1）HTML 文档配置协商缓存；（具体就是用etag还是Last-Modified, 为什么）
+
+2）JS、CSS、图片等资源配置强缓存；（cache-control max-age）
+
+此方案的好处：当项目版本更新时，可以获取最新的页面；若版本未变化，可继续复用之前的缓存资源；既很好利用了浏览器缓存，又解决了页面版本更新的问题
+
 缓存是性能优化中非常重要的一环，浏览器的缓存机制对开发也是非常重要的知识点。接下来以三个部分来把浏览器的缓存机制说清楚：
 
-*   强缓存
-*   协商缓存
+*   强缓存 (cache-control: max-age !== 0)
+*   协商缓存（no-cache, max-age=0）
 *   缓存位置
 
 ### 强缓存
@@ -44,7 +52,9 @@
 
 如果你觉得它只有`max-age`一个属性的话，那就大错特错了。
 
-它其实可以组合非常多的指令，完成更多场景的缓存判断, 将一些关键的属性列举如下: **public**: 客户端和代理服务器都可以缓存。因为一个请求可能要经过不同的`代理服务器`最后才到达目标服务器，那么结果就是不仅仅浏览器可以缓存数据，中间的任何代理节点都可以进行缓存。
+它其实可以组合非常多的指令，完成更多场景的缓存判断, 将一些关键的属性列举如下: 
+
+**public**: 客户端和代理服务器都可以缓存。因为一个请求可能要经过不同的`代理服务器`最后才到达目标服务器，那么结果就是不仅仅浏览器可以缓存数据，中间的任何代理节点都可以进行缓存。
 
 **private**： 这种情况就是只有浏览器能缓存了，中间的代理服务器不能缓存。
 
@@ -139,6 +149,10 @@ Service Worker 同时也是 PWA 的重要实现机制，关于它的细节和特
 *   否则进入协商缓存，即发送 HTTP 请求，服务器通过请求头中的`If-Modified-Since`或者`If-None-Match`字段检查资源是否更新
     *   若资源更新，返回资源和200状态码
     *   否则，返回304，告诉浏览器直接从缓存获取资源
+
+实践：
+1. Apache对于静态内容默认会返回Last-modified和ETag.
+2. Nginx只会返回Last-modified(可配置etag on开启)（如很容易最后修改时间 (如图片/js/css )，适合用）
 
 第2篇: 能不能说一说浏览器的本地存储？各自优劣如何？
 ---------------------------
@@ -251,6 +265,8 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
     https://www.baidu.com/
 ```
 
+
+
 ### 网络请求
 
 #### 1\. 构建请求
@@ -260,6 +276,7 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
     // 请求方法是GET，路径为根路径，HTTP协议版本为1.1
     GET / HTTP/1.1
 ```
+
 
 #### 2\. 查找强缓存
 
@@ -272,6 +289,12 @@ Cookie 的作用很好理解，就是用来做**状态存储**的，但它也是
 当然，值得注意的是，浏览器提供了**DNS数据缓存功能**。即如果一个域名已经解析过，那会把解析的结果缓存下来，下次处理直接走缓存，不需要经过 `DNS解析`。
 
 另外，如果不指定端口的话，默认采用对应的 IP 的 80 端口。
+
+1. 主机向本地域名服务器的查询一般都是采用**递归查询**。
+2. 本地域名服务器向根服务器的查询通常采用**迭代查询**。
+
+#### ARP协议
+　ARP解决的是同一个局域网内，主机或路由器的IP地址和MAC地址的映射问题
 
 #### 4\. 建立 TCP 连接
 
@@ -355,7 +378,7 @@ HTTP 请求到达服务器，服务器进行对应的处理。最后要把数据
 
 到此，我们来总结一下主要内容，也就是浏览器端的网络请求过程：
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f080b095268038?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/url1.png')" alt="foo">
 
 第4篇: 说一说从输入URL到页面呈现发生了什么？——解析算法篇
 --------------------------------
@@ -578,7 +601,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 梳理一下这一节的主要脉络:
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f080b2f718e4ad?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/url2.png')" alt="foo">
 
 第5篇: 说一说从输入URL到页面呈现发生了什么？——渲染过程篇
 --------------------------------
@@ -672,14 +695,14 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 到这里，我们算是把整个过程给走通了，现在重新来梳理一下页面渲染的流程。
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f080b7b8926b7f?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/url3.png')" alt="foo">
 
 第6篇: 谈谈你对重绘和回流的理解。
 ------------------
 
 我们首先来回顾一下`渲染流水线`的流程:
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f080ba7fa706eb?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/reflow1.png')" alt="foo">
 
 接下来，我们将来以此为依据来介绍重绘和回流，以及让更新视图的另外一种方式——合成。
 
@@ -706,7 +729,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 依照上面的渲染流水线，触发回流的时候，如果 DOM 结构发生改变，则重新渲染 DOM 树，然后将后面的流程(包括主线程之外的任务)全部走一遍。
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f0809e65b3d2fc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/reflow2.png')" alt="foo">
 
 相当于将解析和合成的过程重新又走了一篇，开销是非常大的。
 
@@ -720,7 +743,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 由于没有导致 DOM 几何属性的变化，因此元素的位置信息不需要更新，从而省去布局的过程。流程如下：
 
-![](https://user-gold-cdn.xitu.io/2019/12/15/16f080a26aa222d4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+<img :src="$withBase('/image/browser/reflow3.png')" alt="foo">
 
 跳过了`生成布局树`和`建图层树`的阶段，直接生成绘制列表，然后继续进行分块、生成位图等后面一系列操作。
 
@@ -744,7 +767,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 知道上面的原理之后，对于开发过程有什么指导意义呢？
 
 1.  避免频繁使用 style，而是采用修改`class`的方式。
-2.  使用`createDocumentFragment`进行批量的 DOM 操作。
+2.  使用`createDocumentFragment`进行批量的 DOM 操作。（DocumentFragment 不是真实 DOM 树的一部分，它的变化不会触发 DOM 树的重新渲染）
 3.  对于 resize、scroll 等进行防抖/节流处理。
 4.  添加 will-change: tranform ，让渲染引擎为其单独实现一个图层，当这些变换发生时，仅仅只是利用合成线程去处理这些变换，而不牵扯到主线程，大大提高渲染效率。当然这个变化不限于`tranform`, 任何可以实现合成效果的 CSS 属性都能用`will-change`来声明。这里有一个实际的例子，一行`will-change: tranform`拯救一个项目，[点击直达](https://juejin.im/post/5da52531518825094e373372)。
 
@@ -801,7 +824,7 @@ HTML5 [规范](https://html.spec.whatwg.org/multipage/parsing.html)详细地介�
 
 千万不要相信任何用户的输入！
 
-无论是在前端和服务端，都要对用户的输入进行**转码**或者**过滤**。
+无论是在前端和服务端，都要对用户的输入进行**转码(HTML 转义)**或者**过滤**。
 
 如:
 
@@ -1190,6 +1213,56 @@ var throttle = function(fn, interval) {
 
 这样就很方便地实现了图片懒加载，当然这个`IntersectionObserver`也可以用作其他资源的预加载，功能非常强大。
 
+
+第十二篇：谈谈web安全
+-----------------
+
+### web安全
+1. 同源策略，https
+ - 具体来讲，同源策略主要表现在 DOM、Web 数据和网络这三个层面(例如Cookie，DOM和Javascript命名空间)。
+ - 若请求链接中的协议、主机名、端口、方法等任何一个不一样，都是不同源请求
+ - https在HTTP和TCP的传输中建立了一个安全层，利用对称加密和非对称加密结合数字证书认证的方式，让传输过程的安全性大大提高
+
+2. csp
+- 内容安全策略，可以在HTML中的meta标签或者服务端返回的http res header `Content-Secrity-Policy`头中进行设置
+- 可以指定资源的请求域、资源的加载方式等
+
+
+设置，nginx或者是服务端
+```
+Content-Security-Policy: img-src a.b.c; script-src 'unsafe-inline' a.b.c; style-src 'self'
+```
+
+3. xss 跨站脚本攻击
+
+- 持久型XSS是最常见的XSS攻击，主要通过输入框、富文本等组件输入一些恶意的脚本代码，存储到服务端之后，当其他用户打开页面加载该脚本时便出现攻击行为
+- 反射型XSS是需要用户点击黑客提供的恶意链接，该恶意链接会在跳转到正常页面的同时执行黑客脚本
+- DOM型XSS存在于一些第三方插件中,文档型的 XSS 攻击并不会经过服务端，而是作为中间人的角色，在数据传输过程劫持到网络数据包，然后修改里面的 html 文档！(这样的劫持方式包括WIFI路由器劫持或者本地恶意软件等。)
+
+防范：
+  - 对于XSS的防范主要是防范持久型XSS，在页面的输入框和富文本提交时对字符串做过滤处理，同时在页面中只对可信的HTML文本做解析
+  - csp
+  - HttpOnly, 不让读取cookies
+
+React 在渲染 HTML 内容（模板字符串）和渲染 DOM 属性时都会将 "'&<> 这几个字符进行转义，转义部分源码如下：
+
+```js
+  '<'.charCodeAt()
+  case 60: // <
+        escape = '&lt;';
+```
+
+4. csrf跨站请求伪造
+跨站请求伪造，当用户在正常的网站登录之后，由于**同源请求会默认携带Cookie**，因此黑客可以在自己的网站中向正常网站发送伪造请求来冒充用户自己的操作
+
+- 攻击方式主要包含通过标签的src属性、href属性以及form的action属性等，通常是伪造GET请求
+- 防范方式包含使用POST请求处理资源、服务端验证请求的referer header origin、禁止第三方网站请求携带Cookie（SameSite，服务端通过 Set-Cookie）以及最后在请求时增加csrftoken字段做校验
+
+5. sql注入
+通过操作输入来修改SQL语句
+
+- 验证用户输入：验证用户输入的数据，确保其符合预期格式，避免非法字符等。
+- 转义特殊字符：在使用用户输入的数据构造 SQL 语句时，对特殊字符进行转义，以防止注入。
 
 参考文献:
 

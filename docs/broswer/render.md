@@ -69,7 +69,9 @@ SOA（Services Oriented Architecture）:面向服务的架构
 ### 从输入URL到页面渲染经历了什么
 <img :src="$withBase('/image/browser/main.png')" alt="foo">
 
-#### DNS 解析过程（用了什么算法）
+#### DNS 解析过程（路径选择用了什么算法）
+1. 主机向本地域名服务器的查询一般都是采用递归查询
+2. 本地域名服务器向根服务器的查询通常采用迭代查询
 
 #### HTML词法分析和语法分析
 浏览器不能直接理解 HTML 数据，所以第一步需要将其转换为浏览器能够理解的 DOM 树结构；
@@ -110,7 +112,7 @@ SOA（Services Oriented Architecture）:面向服务的架构
 6. **合成线程**发送绘制图块命令DrawQuad给**浏览器进程**。
 7. 浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上。
 
-### 重绘（Repaint）和回流（Reflow）
+### 重绘（Repaint）和回流（Reflow, 重排）
 
 重绘和回流是渲染步骤中的一小节，但是这两个步骤对于性能影响很大。
 
@@ -201,5 +203,12 @@ SOA（Services Oriented Architecture）:面向服务的架构
 
 1. css3  GPU加速(只调用合成线程) 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上（GPU线程、浏览器进程等）执行合成动画操作
 
+::: tip
+什么是GPU加速
+在使用CSS3中的transform、opacity、filter这些属性的时候，能跳过布局和绘制流程，直接进入非主线处理的部分，即交给<font color=red>合成线程</font>。
+
+合成线程中会调用线程池进行GPU加速，因为GPU是比较擅长处理位图数据的
+且它没有占有主线程
+:::
 
 
